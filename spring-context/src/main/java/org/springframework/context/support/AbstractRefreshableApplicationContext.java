@@ -124,11 +124,16 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 			closeBeanFactory();
 		}
 		try {
+			// 根据继承图，DefaultListableBeanFactory 是左右通吃，是最全的 BeanFactory，所以选择这个
 			DefaultListableBeanFactory beanFactory = createBeanFactory();
+			// getId() = org.springframework.context.support.ClassPathXmlApplicationContext@2344fc66
 			beanFactory.setSerializationId(getId());
 			customizeBeanFactory(beanFactory);
+			// ***** 这个就是最重要的了，加载所有的 Bean 配置信息，具体如下详细解释
+			// 它属于模版方法，由子类去实现加载的方式，Config 配置文件的 Bean 定义已经注册完成，其它单例Bean是还没有解析的
+			// xml、annotation 方式装载 bean 的实现
 			loadBeanDefinitions(beanFactory);
-			this.beanFactory = beanFactory;
+			this.beanFactory = beanFactory;  // 获取到 beanFactory 赋值给当前对象的 beanFactory
 		}
 		catch (IOException ex) {
 			throw new ApplicationContextException("I/O error parsing bean definition source for " + getDisplayName(), ex);
@@ -212,6 +217,9 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 * @see DefaultListableBeanFactory#setAllowEagerClassLoading
 	 */
 	protected void customizeBeanFactory(DefaultListableBeanFactory beanFactory) {
+		// allowBeanDefinitionOverriding属性是指是否允对一个名字相同但definition不同进行重新注册，默认是true。
+		// allowCircularReferences属性是指是否允许Bean之间循环引用，默认是true.
+		// 这两个属性值初始值为空：复写此方法即可customizeBeanFactory
 		if (this.allowBeanDefinitionOverriding != null) {
 			beanFactory.setAllowBeanDefinitionOverriding(this.allowBeanDefinitionOverriding);
 		}
