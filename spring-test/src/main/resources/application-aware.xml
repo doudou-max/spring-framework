@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns="http://www.springframework.org/schema/beans"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd" default-autowire="byName">
+
+	<bean id="user"  class="org.springframework.model.User">
+		<property name="name" value="zhangsan"/>
+	</bean>
+
+	<bean id="user2"  class="org.springframework.model.User2">
+		<property name="name" value="lisi"/>
+	</bean>
+
+</beans>

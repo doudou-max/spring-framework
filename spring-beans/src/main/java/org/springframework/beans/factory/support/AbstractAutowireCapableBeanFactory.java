@@ -500,6 +500,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Make sure bean class is actually resolved at this point, and
 		// clone the bean definition in case of a dynamically resolved Class
 		// which cannot be stored in the shared merged bean definition.
+
+		// 确保对应BeanClass完成解析(已经加载进来了Class对象)具体表现是进行了ClassLoder.loadClass或Class.forName完成了类加载
+		// 主要根据传入的typesToMatch生成特定的ClassLoader，之后还要调用RootBeanDefinition#resolveBeanClass，根据特定的加载器或者默认加载器加载出class属性对应的Class对象
+		// 我们这里解析出来，显然就是class com.fsx.service.HelloServiceImpl这个Class了
+		// 判断需要创建的Bean是否可以实例化，这个类是否可以通过类装载器来载入（也就说它甚至可能来源于网络）
 		Class<?> resolvedClass = resolveBeanClass(mbd, beanName);
 		if (resolvedClass != null && !mbd.hasBeanClass() && mbd.getBeanClassName() != null) {
 			mbdToUse = new RootBeanDefinition(mbd);
@@ -508,6 +513,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Prepare method overrides.
 		try {
+			// 这里主要是解析 <lookup-method name="getFruit" bean="bananer"/> 类似这种方式的依赖注入（Spring 支持 lookup-method，replace-method 两个依赖注入的方式）
+			// 它相当于调用指定类里面的指定方法进行注入，所以需要考虑到方法重载的情况，因此这个方法解析的就是这种情况
+			// 由于项目中一般这么使用，也非常的不大众，具体原理此处省略
 			mbdToUse.prepareMethodOverrides();
 		}
 		catch (BeanDefinitionValidationException ex) {
@@ -517,7 +525,16 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		try {
 			// Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
+			// 从 doc 解释：给 BeanPostProcessors 一个机会来返回一个代理对象代替目标对象，什么动态代理之类的，都在这里实现的 ~~~
+			// 		1、具体逻辑是判断当前 Spring 容器是否注册了实现了 InstantiationAwareBeanPostProcessor 接口的后置处理器如果有，
+			// 则依次调用其中的 applyBeanPostProcessorsBeforeInstantiation 方法，如果中间任意一个方法返回不为 null,直接结束调用。
+			// 		2、然后依次所有注册的 BeanPostProcessor 的 postProcessAfterInitialization 方法（同样如果任意一次返回不为null,即终止调用。
+			// 这个方法也非常的重要，后续有详细讲解
+
+			// 容器里所有的InstantiationAwareBeanPostProcessors实例，都会在此处生效，进行前置处理~~~~~~~~~~
+			// 下面有解释：BeanPostProcessor和InstantiationAwareBeanPostProcessor的区别，可以分清楚他们执行的时机
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
+			// 如果不为空，说明提前生成了实例，直接返回
 			if (bean != null) {
 				return bean;
 			}
@@ -527,13 +544,16 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					"BeanPostProcessor before instantiation of bean failed", ex);
 		}
 
+		// 这里又是一个核心逻辑：doCreateBean 为空，还没创建，创建Bean
 		try {
 			Object beanInstance = doCreateBean(beanName, mbdToUse, args);
 			if (logger.isTraceEnabled()) {
 				logger.trace("Finished creating instance of bean '" + beanName + "'");
 			}
+			// 创建完成后 直接短路掉返回
 			return beanInstance;
 		}
+		// 这些都是可能出现的异常们 ~~~~~~~~~~~~~~~~~~~~
 		catch (BeanCreationException | ImplicitlyAppearedSingletonException ex) {
 			// A previously detected exception with proper bean creation context already,
 			// or illegal singleton state to be communicated up to DefaultSingletonBeanRegistry.
