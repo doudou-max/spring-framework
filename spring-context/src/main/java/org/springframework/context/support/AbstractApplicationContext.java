@@ -582,7 +582,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				StartupStep beanPostProcess = this.applicationStartup.start("spring.context.beans.post-process");  // 标记开始处理后置处理器
 
 				// Invoke factory processors registered as beans in the context.
-				// 实例化并调用所有注册的 beanFactory 后置处理器 (实现接口 BeanFactoryPostProcessor 的 bean)
+				// 实例化并调用所有注册的 beanFactory 后置处理器 (实现接口 BeanFactoryPostProcessor 的 bean，@Configuration 的 ConfigurationClassPostProcessor)
 				// 在 beanFactory 标准初始化之后执行  例如：PropertyPlaceholderConfigurer (处理占位符)
 				invokeBeanFactoryPostProcessors(beanFactory);
 

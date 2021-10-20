@@ -61,6 +61,13 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 
 
 	/**
+	 * 从这里可以看出：
+	 * 	  在构造 annotationConfigApplicationContext 对象的同时实例化 ClassPathBeanDefinitionScanner,
+	 *
+	 * 猜测点：
+	 * 	  通过 @Configuration @Bean @Component 将对象注入到容器中的操作是通过 ClassPathBeanDefinitionScanner
+	 *
+	 *
 	 * Create a new AnnotationConfigApplicationContext that needs to be populated
 	 * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
 	 */

@@ -29,9 +29,9 @@ public class MainClass {
 //		System.out.println(messageService.getMessage());
 
 
-		ApplicationContext context = new AnnotationConfigApplicationContext(DemoComponent.class, User.class);
-		DemoComponent demoComponent = context.getBean(DemoComponent.class);
-		System.out.println("---------------" + demoComponent.say());
+//		ApplicationContext context = new AnnotationConfigApplicationContext(DemoComponent.class, User.class);
+//		DemoComponent demoComponent = context.getBean(DemoComponent.class);
+//		System.out.println("---------------" + demoComponent.say());
 
 //		User user = context.getBean(User.class);
 //		System.out.println("---------------" + user.say());
@@ -40,6 +40,14 @@ public class MainClass {
 //		MessageService messageService = context2.getBean(MessageService.class);
 //		System.out.println("---------------" + messageService.getMessage());
 
+		// 注解 applicationContext，必须结合 @Configuration 和 @Bean 一起使用
+//		ApplicationContext context = new AnnotationConfigApplicationContext("org.springframework.configuration", "org.springframework.component");
+		ApplicationContext context = new AnnotationConfigApplicationContext("org.springframework.configuration");
+		User user = context.getBean(User.class);
+		System.out.println("---------------" + user.say());
+
+//		DemoComponent bean = context.getBean(DemoComponent.class);
+//		System.out.println("---------------" + bean.say());
 	}
 
 }

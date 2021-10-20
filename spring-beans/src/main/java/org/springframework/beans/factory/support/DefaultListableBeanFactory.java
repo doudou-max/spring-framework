@@ -921,7 +921,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		// Trigger initialization of all non-lazy singleton beans...
 		// 触发所有非惰性单例 bean 的初始化
 		for (String beanName : beanNames) {
-			if(!beanName.equals("demoComponent")) continue;
+			// TODO: 2021/10/20 记得这里
+			// if(!beanName.equals("demoComponent")) continue;
 			// getMergedLocalBeanDefinition():
 			// 	  该方法功能说明：在 map 缓存中把 Bean 的定义拿出来。交给 getMergedLocalBeanDefinition() 处理，最终转换成了 RootBeanDefinition 类型
 			// 	  在转换的过程中如果 BeanDefinition 的父类不为空，则把父类的属性也合并到 RootBeanDefinition 中，
