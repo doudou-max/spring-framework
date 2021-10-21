@@ -120,6 +120,8 @@ class ConfigurationClassBeanDefinitionReader {
 
 
 	/**
+	 * 对每个 @Configuration 类文件做遍历（所以 Config配置文件的顺序还是挺重要的）
+	 *
 	 * Read {@code configurationModel}, registering bean definitions
 	 * with the registry based on its contents.
 	 */
@@ -131,6 +133,15 @@ class ConfigurationClassBeanDefinitionReader {
 	}
 
 	/**
+	 * private 方法来解析每一个已经解析好的 @Configuration 配置文件~~~
+	 *
+	 * 最先处理注册@Import进来的Bean定义~，判断依据是：configClass.isImported()。官方解释为：Return whether this configuration class was registered via @{@link Import} or automatically registered due to being nested within another configuration class 这句话的意思是说@Import或者内部类或者通过别的配置类放进来的都是被导入进来的~~~~
+	 * 第二步开始注册@Bean进来的：若是static方法，beanDef.setBeanClassName(configClass.getMetadata().getClassName()) + beanDef.setFactoryMethodName(methodName)；若是实例方法：beanDef.setFactoryBeanName(configClass.getBeanName())+ beanDef.setUniqueFactoryMethodName(methodName) 总之对使用者来说 没有太大的区别
+	 * 注册importedResources进来的bean们。就是@ImportResource这里来的Bean定义
+	 * 执行ImportBeanDefinitionRegistrar#registerBeanDefinitions()注册Bean定义信息~（也就是此处执行ImportBeanDefinitionRegistrar的接口方法）
+	 *
+	 * this.reader.loadBeanDefinitions(configClasses)执行完成后，拥有的bean定义截图如下：（导入的最终也都作为独立的Bean注册进来了~)
+	 *
 	 * Read a particular {@link ConfigurationClass}, registering bean definitions
 	 * for the class itself and all of its {@link Bean} methods.
 	 */

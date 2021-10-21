@@ -247,6 +247,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 
 	/**
 	 * Derive further bean definitions from the configuration classes in the registry.
+	 *
 	 * 为了更好的理解它的运行过程，我们需要知道它在什么时候调用：AbstractApplicationContext#refresh 中的
 	 * 第 5 步时进行调用 postProcessBeanDefinitionRegistry()
 	 */
@@ -376,6 +377,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			// 校验 配置类不能使final的，因为需要使用CGLIB生成代理对象，见postProcessBeanFactory方法
 			parser.validate();
 
+			// 此处就拿出了我们已经处理好的所有配置类们（该配置文件下的所有组件们~~~~）
 			Set<ConfigurationClass> configClasses = new LinkedHashSet<>(parser.getConfigurationClasses());
 			configClasses.removeAll(alreadyParsed);
 
@@ -388,6 +390,8 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			}
 			// 此处注意：调用了ConfigurationClassBeanDefinitionReader的loadBeanDefinitionsd的加载配置文件里面的@Bean/@Import们，具体讲解请参见下面
 			// 这个方法是非常重要的，因为它决定了向容器注册Bean定义信息的顺序问题~~~
+			// reader：ConfigurationClassBeanDefinitionReader最终真正实现的Bean的注册
+			// 关于它的原始代码 下面有着重分析，因此此处只说一个结论，顺序
 			this.reader.loadBeanDefinitions(configClasses);
 			alreadyParsed.addAll(configClasses);
 			processConfig.tag("classCount", () -> String.valueOf(configClasses.size())).end();

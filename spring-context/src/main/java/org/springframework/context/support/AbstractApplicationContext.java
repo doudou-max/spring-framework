@@ -834,6 +834,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	}
 
 	/**
+	 * 实例化和注册所有实现 BeanPostProcessor 的 bean
+	 * 比如 @Configuration 的处理类 ConfigurationClassPostProcessor
+	 * ConfigurationClassPostProcessor implements BeanDefinitionRegistryPostProcessor extends BeanFactoryPostProcessor
+	 *
 	 * Instantiate and register all BeanPostProcessor beans,
 	 * respecting explicit order if given.
 	 * <p>Must be called before any instantiation of application beans.

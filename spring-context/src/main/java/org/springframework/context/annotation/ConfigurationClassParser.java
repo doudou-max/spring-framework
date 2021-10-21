@@ -167,11 +167,20 @@ class ConfigurationClassParser {
 	}
 
 
+	/**
+	 * 实例化deferredImportSelectors
+	 * 遍历configCandidates ,进行处理.根据BeanDefinition 的类型 做不同的处理,一般都会调用ConfigurationClassParser#parse 进行解析
+	 * 处理ImportSelect
+	 *
+	 * @param configCandidates 候选 bean 配置集合
+	 */
 	public void parse(Set<BeanDefinitionHolder> configCandidates) {
 		for (BeanDefinitionHolder holder : configCandidates) {
 			BeanDefinition bd = holder.getBeanDefinition();
 			try {
+				// 我们使用的注解驱动，所以会到这个 parse 进来处理。其实内部调用都是 processConfigurationClass 进行解析的
 				if (bd instanceof AnnotatedBeanDefinition) {
+					//单反有注解标注的，都会走这里来解析
 					parse(((AnnotatedBeanDefinition) bd).getMetadata(), holder.getBeanName());
 				}
 				else if (bd instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) bd).hasBeanClass()) {
@@ -189,7 +198,7 @@ class ConfigurationClassParser {
 						"Failed to parse configuration class [" + bd.getBeanClassName() + "]", ex);
 			}
 		}
-
+		// 最最最后面才处理实现了DeferredImportSelector接口的类，最最后哦~~
 		this.deferredImportSelectorHandler.process();
 	}
 
@@ -223,10 +232,15 @@ class ConfigurationClassParser {
 
 
 	protected void processConfigurationClass(ConfigurationClass configClass, Predicate<String> filter) throws IOException {
+		// ConfigurationCondition 继承自 Condition 接口
+		// ConfigurationPhase 枚举类型的作用：ConfigurationPhase 的作用就是根据条件来判断是否加载这个配置类
+		// 两个值：PARSE_CONFIGURATION 若条件不匹配就不加载此@Configuration
+		// REGISTER_BEAN：无论如何，所有@Configurations都将被解析。
 		if (this.conditionEvaluator.shouldSkip(configClass.getMetadata(), ConfigurationPhase.PARSE_CONFIGURATION)) {
 			return;
 		}
 
+		// 如果这个配置类已经存在了,后面又被@Import进来了~~~会走这里 然后做属性合并~
 		ConfigurationClass existingClass = this.configurationClasses.get(configClass);
 		if (existingClass != null) {
 			if (configClass.isImported()) {
@@ -245,16 +259,22 @@ class ConfigurationClassParser {
 		}
 
 		// Recursively process the configuration class and its superclass hierarchy.
+		// 请注意此处：while递归，只要方法不返回null，就会一直do下去~~~~~~~~
 		SourceClass sourceClass = asSourceClass(configClass, filter);
 		do {
+			// doProcessConfigurationClass 这个方法是解析配置文件的核心方法，此处不做详细分析
 			sourceClass = doProcessConfigurationClass(configClass, sourceClass, filter);
 		}
 		while (sourceClass != null);
 
+		// 保存我们所有的配置类  注意：它是一个LinkedHashMap，所以是有序的  这点还比较重要~~~~和bean定义信息息息相关
 		this.configurationClasses.put(configClass, configClass);
 	}
 
 	/**
+	 * 解析 @Configuration 配置文件，然后加载进Bean的定义信息们
+	 * 这个方法非常的重要，可以看到它加载Bean定义信息的一个顺序~~~~
+	 *
 	 * Apply processing and build a complete {@link ConfigurationClass} by reading the
 	 * annotations, members and methods from the source class. This method can be called
 	 * multiple times as relevant sources are discovered.
@@ -267,8 +287,14 @@ class ConfigurationClassParser {
 			ConfigurationClass configClass, SourceClass sourceClass, Predicate<String> filter)
 			throws IOException {
 
+		// 先去看看内部类  这个if判断是Spring5.x加上去的，这个我认为还是很有必要的。
+		// 因为@Import、@ImportResource这种属于lite模式的配置类，但是我们却不让他支持内部类了
 		if (configClass.getMetadata().isAnnotated(Component.class.getName())) {
 			// Recursively process any member (nested) classes first
+			// 基本逻辑：内部类也可以有多个（支持lite模式和full模式，也支持order排序）
+			// 若不是被import过的，那就顺便直接解析它（processConfigurationClass（））
+			// 另外：该内部class可以是private  也可以是static~~~(建议用private)
+			// 所以可以看到，把@Bean等定义在内部类里面，是有助于提升Bean的优先级的~~~~~
 			processMemberClasses(configClass, sourceClass, filter);
 		}
 
@@ -308,6 +334,7 @@ class ConfigurationClassParser {
 		}
 
 		// Process any @Import annotations
+		// getImports方法的实现 很有意思
 		processImports(configClass, sourceClass, getImports(sourceClass), filter, true);
 
 		// Process any @ImportResource annotations
@@ -1121,5 +1148,24 @@ class ConfigurationClassParser {
 					new Location(importStack.element().getResource(), attemptedImport.getMetadata()));
 		}
 	}
+
+
+	/**
+	 * 最终我归纳出一个扫描Bean的顺序（注意并不是Bean定义真正注册的顺序），解析@Configuration配置文件的顺序：
+	 *
+	 * 内部配置类：–> 它里面还可以有普通配置类一模一样的功能，但优先级最高，最终会放在configurationClasses这个map的第一位
+	 * @PropertySource：这个和Bean定义没啥关系了，属于Spring配置PropertySource的范畴。这个属性优先级相对较低
+	 * @ComponentScan：注意，注意，注意重说三。 这里扫描到的Bean定义，就直接register注册了，直接注册了，注解注册了。所以它的时机是非常早的。（另外：如果注册进去的Bean定义信息如果还是配置类，这里会继续parse()，所以最终能被扫描到的组件，最终都会当作一个配置类来处理，所以最终都会放进configurationClasses这个Map里面去）
+	 * @Import：相对复杂点，如下：
+	 * 若就是一个普通类（标注@Configuration与否都无所谓反正会当作一个配置类来处理，也会放进configurationClasses缓存进去）
+	 * 实现了ImportSelector：递归最红都成为第一步的类。若实现的是DeferredImportSelector接口，它会放在deferredImportSelectors属性里先保存着，等着外部的所有的configCandidates配置类全部解析完成后，统一processDeferredImportSelectors()。它的处理方式一样的，最终也是转为第一步的类
+	 * 实现了ImportBeanDefinitionRegistrar：放在ConfigurationClass.importBeanDefinitionRegistrars属性里保存着
+	 * @ImportResource：一般用来导入xml文件。它是先放在ConfigurationClass.importedResources属性里放着
+	 * @Bean：找到所有@Bean的方法，然后保存到ConfigurationClass.beanMethods属性里
+	 * processInterfaces：处理该类实现的接口们的default方法（标注@Bean的有效）
+	 * 处理父类：拿到父类，每个父类都是一个配置文件来处理（比如要有任何注解）。备注：!superclass.startsWith("java")全类名不以java打头，且没有被处理过(因为一个父类可议N个子类，但只能被处理一次)
+	 * return null：若全部处理完成后就返回null，停止递归。
+	 * 由上可见，这九步中，唯独只有@ComponentScan扫描到的Bean这个时候的Bean定义信息是已经注册上去了的，其余的都还没有真正注册到注册中心。
+	 */
 
 }

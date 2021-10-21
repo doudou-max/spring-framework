@@ -145,6 +145,30 @@ abstract class ConfigurationClassUtils {
 	}
 
 	/**
+	 * 判断是否是候选的 configuration bean 对象
+	 *
+	 * 如果类上有 @Configuration 注解说明是一个完全（Full）的配置类
+	 *
+	 * 如果如果类上面有 @Component，@ComponentScan，@Import，@ImportResource这些注解，那么就是一个简化配置类。如果不是上面两种情况，那么有@Bean注解修饰的方法也是简化配置类
+	 *
+	 * 	只要这个类标注了：@Configuration注解就行  哪怕是接口、抽象类都木有问题
+	 *
+	 * // 判断是Lite模式：（首先肯定没有@Configuration注解）
+	 * 	// 1、不能是接口
+	 * 	// 2、但凡只有标注了一个下面注解，都算lite模式：@Component @ComponentScan @Import @ImportResource
+	 * 	// 3、只有存在有一个方法标注了@Bean注解，那就是lite模式
+	 * 	// 不能是接口
+	 *	// 但凡只有标注了一个下面注解，都算lite模式：@Component @ComponentScan @Import @ImportResource
+	 *  // 只有存在有一个方法标注了@Bean注解，那就是lite模式
+	 *  // 不管是Full模式还是Lite模式，都被认为是候选的配置类  是上面两个方法的结合
+	 *
+	 *  // 下面两个方法是直接判断Bean定义信息，是否是配置类，至于Bean定义里这个属性啥时候放进去的，请参考
+	 * 	//ConfigurationClassUtils.checkConfigurationClassCandidate(beanDef, this.metadataReaderFactory)方法，它会对每个Bean定义信息进行检测（毕竟刚开始Bean定义信息是非常少的，所以速度也很快）
+	 *
+	 * 	Full模式和Lite模式的唯一区别：Full模式的配置组件会被enhance（加强/代理），而Liter模式不会。其余使用方式都一样，比如@Bean、@Import等等
+	 *
+	 * 	只有类上标注@Configuration才是full模式。标注有@Component、@ComponentScan、@Import、@ImportResource或者啥注解都没标注但是有被标注了@Bean的方法这种也是lite模式
+	 *
 	 * Check the given metadata for a configuration class candidate
 	 * (or nested component class declared within a configuration/component class).
 	 * @param metadata the metadata of the annotated class
