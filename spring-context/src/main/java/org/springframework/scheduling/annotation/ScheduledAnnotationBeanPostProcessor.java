@@ -345,6 +345,12 @@ public class ScheduledAnnotationBeanPostProcessor
 		return bean;
 	}
 
+	/**
+	 * ScheduledAnnotationBeanPostProcessor：解析方法中标注有 @Scheduled 注解的 然后加入当作一个任务进行执行
+	 *
+	 * @param bean the new bean instance
+	 * @param beanName the name of the bean
+	 */
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) {
 		if (bean instanceof AopInfrastructureBean || bean instanceof TaskScheduler ||

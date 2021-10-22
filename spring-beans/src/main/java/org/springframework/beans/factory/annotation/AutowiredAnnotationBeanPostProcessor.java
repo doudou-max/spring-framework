@@ -407,6 +407,20 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 		return pvs;
 	}
 
+	/**
+	 * AutowiredAnnotationBeanPostProcessor、CommonAnnotationBeanPostProcessor#postProcessPropertyValues
+	 * 实现注解给属性赋值：从上面看到了，Bean已经解析拿到了注解的一些元信息，因此此处就调用一些处理器的postProcessPropertyValues方法，
+	 * 来给赋值了
+	 *
+	 * //AutowiredAnnotationBeanPostProcessor:这里就是解析该Bean的Autowired信息,然后给inject进去
+	 *
+	 * @param pvs the property values that the factory is about to apply (never {@code null})
+	 * @param pds the relevant property descriptors for the target bean (with ignored
+	 * dependency types - which the factory handles specifically - already filtered out)
+	 * @param bean the bean instance created, but whose properties have not yet been set
+	 * @param beanName the name of the bean
+	 * @return @see #postProcessPropertyValues
+	 */
 	@Deprecated
 	@Override
 	public PropertyValues postProcessPropertyValues(

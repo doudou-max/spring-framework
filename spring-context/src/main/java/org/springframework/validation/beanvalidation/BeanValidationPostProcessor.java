@@ -84,7 +84,9 @@ public class BeanValidationPostProcessor implements BeanPostProcessor, Initializ
 		}
 	}
 
-
+	/**
+	 * BeanValidationPostProcessor：对bean进行数据校验
+	 */
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		if (!this.afterInitialization) {
@@ -93,6 +95,12 @@ public class BeanValidationPostProcessor implements BeanPostProcessor, Initializ
 		return bean;
 	}
 
+	/**
+	 * BeanValidationPostProcessor：校验
+	 *
+	 * @param bean the new bean instance
+	 * @param beanName the name of the bean
+	 */
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		if (this.afterInitialization) {

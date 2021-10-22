@@ -48,6 +48,11 @@ class BootstrapContextAwareProcessor implements BeanPostProcessor {
 	}
 
 
+	/**
+	 * BootstrapContextAwareProcessor 对 bean 校验
+	 * @param bean the new bean instance
+	 * @param beanName the name of the bean
+	 */
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		if (this.bootstrapContext != null && bean instanceof BootstrapContextAware) {

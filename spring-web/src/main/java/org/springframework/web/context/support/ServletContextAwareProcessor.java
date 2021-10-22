@@ -102,6 +102,11 @@ public class ServletContextAwareProcessor implements BeanPostProcessor {
 		return this.servletConfig;
 	}
 
+	/**
+	 * ServletContextAwareProcessor 对 bean 校验
+	 * @param bean the new bean instance
+	 * @param beanName the name of the bean
+	 */
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		if (getServletContext() != null && bean instanceof ServletContextAware) {
