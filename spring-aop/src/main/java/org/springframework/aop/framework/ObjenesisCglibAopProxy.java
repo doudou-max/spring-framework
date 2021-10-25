@@ -28,6 +28,10 @@ import org.springframework.objenesis.SpringObjenesis;
 import org.springframework.util.ReflectionUtils;
 
 /**
+ * Objenesis 是专门用于实例化一些特殊 java 对象的一个工具，如私有构造方法。
+ * 我们知道带参数的构造等不能通过 class.newInstance() 实例化的，通过它可以轻松完成
+ * 基于 Objenesis 的 CglibAopProxy 扩展，用于创建代理实例，没有调用类的构造器(厉害了)
+ *
  * Objenesis-based extension of {@link CglibAopProxy} to create proxy instances
  * without invoking the constructor of the class. Used by default as of Spring 4.
  *

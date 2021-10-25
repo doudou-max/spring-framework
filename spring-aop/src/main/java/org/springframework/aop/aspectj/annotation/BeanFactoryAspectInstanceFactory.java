@@ -44,14 +44,22 @@ import org.springframework.util.ClassUtils;
 @SuppressWarnings("serial")
 public class BeanFactoryAspectInstanceFactory implements MetadataAwareAspectInstanceFactory, Serializable {
 
+	/**
+	 * 持有对 Bean 工厂的引用
+	 */
 	private final BeanFactory beanFactory;
 
+	/**
+	 * 需要处理的名称
+	 */
 	private final String name;
 
 	private final AspectMetadata aspectMetadata;
 
 
 	/**
+	 * 传了 Name，type 可议不传，内部判断出来
+	 *
 	 * Create a BeanFactoryAspectInstanceFactory. AspectJ will be called to
 	 * introspect to create AJType metadata using the type returned for the
 	 * given bean name from the BeanFactory.
@@ -78,13 +86,18 @@ public class BeanFactoryAspectInstanceFactory implements MetadataAwareAspectInst
 		this.name = name;
 		Class<?> resolvedType = type;
 		if (type == null) {
+			// 若没传 type，就去 Bean 工厂里看看它的 Type 是啥  type 不能为 null
 			resolvedType = beanFactory.getType(name);
 			Assert.notNull(resolvedType, "Unresolvable bean type - explicitly specify the aspect class");
 		}
+		// 包装成切面元数据类
 		this.aspectMetadata = new AspectMetadata(resolvedType, name);
 	}
 
-
+	/**
+	 * 切面实例是从 Bean工厂 里获取的
+	 * 需要注意，若是多例的，请注意Scope的值
+	 */
 	@Override
 	public Object getAspectInstance() {
 		return this.beanFactory.getBean(this.name);
@@ -138,6 +151,7 @@ public class BeanFactoryAspectInstanceFactory implements MetadataAwareAspectInst
 			if (Ordered.class.isAssignableFrom(type) && this.beanFactory.isSingleton(this.name)) {
 				return ((Ordered) this.beanFactory.getBean(this.name)).getOrder();
 			}
+			// 若没实现接口，就拿注解的值
 			return OrderUtils.getOrder(type, Ordered.LOWEST_PRECEDENCE);
 		}
 		return Ordered.LOWEST_PRECEDENCE;

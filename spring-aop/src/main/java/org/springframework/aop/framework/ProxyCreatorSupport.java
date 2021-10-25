@@ -22,6 +22,13 @@ import java.util.List;
 import org.springframework.util.Assert;
 
 /**
+ * 三大创建代理对象的工厂 ProxyFactoryBean、ProxyFactory、AspectJProxyFactory 都是继承自此类的
+ *
+ * ProxyCreatorSupport 用于设置和保存下面三大信息：
+ * 	  设置被代理对象target
+ *    设置代理接口
+ *    设置通知advice
+ *
  * Base class for proxy factories.
  * Provides convenient access to a configurable AopProxyFactory.
  *
@@ -41,6 +48,7 @@ public class ProxyCreatorSupport extends AdvisedSupport {
 
 
 	/**
+	 * new 了一个 aopProxyFactory
 	 * Create a new ProxyCreatorSupport instance.
 	 */
 	public ProxyCreatorSupport() {
@@ -102,6 +110,8 @@ public class ProxyCreatorSupport extends AdvisedSupport {
 		if (!this.active) {
 			activate();
 		}
+		// 由此可以看出，它还是委托给了 `AopProxyFactory` 去做这件事
+		// 它的实现类为：DefaultAopProxyFactory
 		return getAopProxyFactory().createAopProxy(this);
 	}
 

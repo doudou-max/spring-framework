@@ -22,6 +22,20 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.springframework.aop.Advisor;
 
 /**
+ * Advisor: 通知 + 切入点 适配器
+ *
+ * spring aop 框架对 BeforeAdvice、AfterAdvice、ThrowsAdvice 三种通知类型的支持实际上是借助适配器模式来实现的，
+ * 这样的好处是使得框架允许用户向框架中加入自己想要支持的任何一种通知类型的AdvisorAdapter是一个适配器接口，它定义了自己支持的Advice类型，
+ * 并且能把一个Advisor适配成MethodInterceptor（这也是AOP联盟定义的接口）
+ *
+ * 如果我们想把自己定义的AdvisorAdapter注册到spring aop框架中，怎么办？
+ *
+ * 把我们自己写好得 AdvisorAdapter 放进 Spring IoC 容器中
+ * 配置一个 AdvisorAdapterRegistrationManager，它是一个 BeanPostProcessor，它会检测所有的Bean。
+ * 若是AdvisorAdapter类型，就：this.advisorAdapterRegistry.registerAdvisorAdapter((AdvisorAdapter) bean);
+ *
+ * 一般我们自己并不需要自己去提供此接口的实现(除非你还行适配被的 Advice 进来)，因为 Spring 为我们提供了对应的实现
+ *
  * Interface allowing extension to the Spring AOP framework to allow
  * handling of new Advisors and Advice types.
  *
@@ -37,6 +51,8 @@ import org.springframework.aop.Advisor;
 public interface AdvisorAdapter {
 
 	/**
+	 * 以下是它的定义：
+	 *    判断此适配器是否支持特定的Advice
 	 * Does this adapter understand this advice object? Is it valid to
 	 * invoke the {@code getInterceptors} method with an Advisor that
 	 * contains this advice as an argument?
@@ -48,6 +64,8 @@ public interface AdvisorAdapter {
 	boolean supportsAdvice(Advice advice);
 
 	/**
+	 * 将一个 Advisor 适配成 MethodInterceptor
+	 *
 	 * Return an AOP Alliance MethodInterceptor exposing the behavior of
 	 * the given advice to an interception-based AOP framework.
 	 * <p>Don't worry about any Pointcut contained in the Advisor;

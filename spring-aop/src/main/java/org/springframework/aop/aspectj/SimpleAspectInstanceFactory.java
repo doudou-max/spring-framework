@@ -25,6 +25,9 @@ import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 /**
+ * SimpleAspectInstanceFactory：根据切面的 aspectClass，调用空构造函数反射.newInstance()
+ * 创建一个实例 (备注：构造函数private的也没有关系)
+ *
  * Implementation of {@link AspectInstanceFactory} that creates a new instance
  * of the specified aspect class for every {@link #getAspectInstance()} call.
  *

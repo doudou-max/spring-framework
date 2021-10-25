@@ -28,6 +28,8 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * 提供为代理创建器提供了一些公共方法实现
+ *
  * Base class with common functionality for proxy processors, in particular
  * ClassLoader management and the {@link #evaluateProxyInterfaces} algorithm.
  *
@@ -42,6 +44,8 @@ public class ProxyProcessorSupport extends ProxyConfig implements Ordered, BeanC
 	/**
 	 * This should run after all other processors, so that it can just add
 	 * an advisor to existing proxies rather than double-proxy.
+	 *
+	 * AOP 的自动代理创建器必须在所有的别的 processors 之后执行，以确保它可以代理到所有的小伙伴们，即使需要双重代理得那种
 	 */
 	private int order = Ordered.LOWEST_PRECEDENCE;
 
@@ -52,6 +56,8 @@ public class ProxyProcessorSupport extends ProxyConfig implements Ordered, BeanC
 
 
 	/**
+	 * 当然此处还是提供了方法，你可以自己 set 或者使用 @Order 来人为的改变这个顺序
+	 *
 	 * Set the ordering which will apply to this processor's implementation
 	 * of {@link Ordered}, used when applying multiple processors.
 	 * <p>The default value is {@code Ordered.LOWEST_PRECEDENCE}, meaning non-ordered.
@@ -94,6 +100,9 @@ public class ProxyProcessorSupport extends ProxyConfig implements Ordered, BeanC
 
 
 	/**
+	 * 这是它提供的一个最为核心的方法：这里决定了如果目标类没有实现接口直接就是 Cglib 代理
+	 * 检查给定beanClass上的接口们，并交给 proxyFactory 处理
+	 *
 	 * Check the interfaces on the given bean class and apply them to the {@link ProxyFactory},
 	 * if appropriate.
 	 * <p>Calls {@link #isConfigurationCallbackInterface} and {@link #isInternalLanguageInterface}
@@ -102,27 +111,34 @@ public class ProxyProcessorSupport extends ProxyConfig implements Ordered, BeanC
 	 * @param proxyFactory the ProxyFactory for the bean
 	 */
 	protected void evaluateProxyInterfaces(Class<?> beanClass, ProxyFactory proxyFactory) {
+		// 找到该类实现的所有接口们
 		Class<?>[] targetInterfaces = ClassUtils.getAllInterfacesForClass(beanClass, getProxyClassLoader());
+		// 标记：是否有存在【合理的】接口
 		boolean hasReasonableProxyInterface = false;
 		for (Class<?> ifc : targetInterfaces) {
 			if (!isConfigurationCallbackInterface(ifc) && !isInternalLanguageInterface(ifc) &&
-					ifc.getMethods().length > 0) {
+					ifc.getMethods().length > 0) {  // 该接口必须还有方法才行，不要忘记了这步判断咯
 				hasReasonableProxyInterface = true;
 				break;
 			}
 		}
 		if (hasReasonableProxyInterface) {
 			// Must allow for introductions; can't just set interfaces to the target's interfaces only.
+			// 这里 spring 的 doc 特别强调了：不能只把合理的接口设置进去，而是都得加入进去
 			for (Class<?> ifc : targetInterfaces) {
 				proxyFactory.addInterface(ifc);
 			}
 		}
 		else {
+			// 这个很明显设置 true，表示使用 CGLIB 得方式去创建代理了
 			proxyFactory.setProxyTargetClass(true);
 		}
 	}
 
 	/**
+	 * 判断此接口类型是否属于：
+	 * 	  容器去回调的类型，这里例举处理一些接口 初始化、销毁、自动刷新、自动关闭、Aware感知等等
+	 *
 	 * Determine whether the given interface is just a container callback and
 	 * therefore not to be considered as a reasonable proxy interface.
 	 * <p>If no reasonable proxy interface is found for a given bean, it will get
@@ -136,6 +152,8 @@ public class ProxyProcessorSupport extends ProxyConfig implements Ordered, BeanC
 	}
 
 	/**
+	 * 是否是如下通用的接口。若实现的是这些接口也会排除，不认为它是实现了接口的类
+	 *
 	 * Determine whether the given interface is a well-known internal language interface
 	 * and therefore not to be considered as a reasonable proxy interface.
 	 * <p>If no reasonable proxy interface is found for a given bean, it will get

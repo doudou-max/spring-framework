@@ -27,6 +27,11 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * 都转为了 AOP联盟 的 MethodInterceptor 从而实现拦截统一的拦截工作
+ *
+ * AdvisorAdapterRegistry 和 DefaultAdvisorAdapterRegistry,
+ * GlobalAdvisorAdapterRegistry 用于管理管理 AdvisorAdapter 的
+ *
  * Interceptor to wrap a {@link MethodBeforeAdvice}.
  * <p>Used internally by the AOP framework; application developers should not
  * need to use this class directly.
@@ -55,6 +60,7 @@ public class MethodBeforeAdviceInterceptor implements MethodInterceptor, BeforeA
 	@Nullable
 	public Object invoke(MethodInvocation mi) throws Throwable {
 		this.advice.before(mi.getMethod(), mi.getArguments(), mi.getThis());
+		// 最终调用，实现了链式调用的效果
 		return mi.proceed();
 	}
 

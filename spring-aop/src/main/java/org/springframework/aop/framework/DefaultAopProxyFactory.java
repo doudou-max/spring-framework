@@ -55,8 +55,17 @@ public class DefaultAopProxyFactory implements AopProxyFactory, Serializable {
 	private static final boolean IN_NATIVE_IMAGE = (System.getProperty("org.graalvm.nativeimage.imagecode") != null);
 
 
+	/**
+	 * DefaultAopProxyFactory#createAopProxy
+	 *
+	 * @param config the AOP configuration in the form of an
+	 * AdvisedSupport object
+	 */
 	@Override
 	public AopProxy createAopProxy(AdvisedSupport config) throws AopConfigException {
+		// 对代理进行优化 或者 直接采用 CGLIB 动态代理或者
+		// config.isOptimize() 与 config.isProxyTargetClass() 默认返回都是 false
+		// 需要优化强制 cglib 没有实现接口等都会进入这里面来
 		if (!IN_NATIVE_IMAGE &&
 				(config.isOptimize() || config.isProxyTargetClass() || hasNoUserSuppliedProxyInterfaces(config))) {
 			Class<?> targetClass = config.getTargetClass();
@@ -64,17 +73,25 @@ public class DefaultAopProxyFactory implements AopProxyFactory, Serializable {
 				throw new AopConfigException("TargetSource cannot determine target class: " +
 						"Either an interface or a target is required for proxy creation.");
 			}
+			// 倘若目标 Class 本身就是个接口，或者它已经是个 JDK 的代理类
+			// Proxy 的子类，所有的JDK代理类都是此类的子类，那还是用 JDK 的动态代理吧
 			if (targetClass.isInterface() || Proxy.isProxyClass(targetClass)) {
 				return new JdkDynamicAopProxy(config);
 			}
+			// 实用 CGLIB 代理方式 ObjenesisCglibAopProxy 是 CglibAopProxy 的子类。Spring4.0 之后提供的
 			return new ObjenesisCglibAopProxy(config);
 		}
+		// 否则(一般都是有实现接口)都会采用JDK得动态代理
 		else {
 			return new JdkDynamicAopProxy(config);
 		}
 	}
 
 	/**
+	 * 如果它没有实现过接口(ifcs.length == ) 或者 仅仅实现了一个接口，但是呢这个接口却是 SpringProxy 类型的，那就返回 false
+	 * 总体来说，就是看看这个 config 有没有实现过靠谱的、可以用的接口
+	 * SpringProxy:一个标记接口。Spring AOP产生的所有的代理类 都是它的子类
+	 *
 	 * Determine whether the supplied {@link AdvisedSupport} has only the
 	 * {@link org.springframework.aop.SpringProxy} interface specified
 	 * (or no proxy interfaces specified at all).

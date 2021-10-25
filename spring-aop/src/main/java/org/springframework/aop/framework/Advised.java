@@ -23,6 +23,13 @@ import org.springframework.aop.TargetClassAware;
 import org.springframework.aop.TargetSource;
 
 /**
+ * Advised: 包含所有的 Advisor 和 Advice
+ *
+ * 该接口用于保存一个代理的相关配置。比如保存了这个代理相关的拦截器、通知、增强器等等。
+ * 所有的代理对象都实现了该接口 (我们就能够通过一个代理对象获取这个代理对象怎么被代理出来的相关信息)
+ *
+ * 不管是 JDK proxy，还是 cglib proxy，代理出来的对象都实现了org.springframework.aop.framework.Advised接口；
+ *
  * Interface to be implemented by classes that hold the configuration
  * of a factory of AOP proxies. This configuration includes the
  * Interceptors and other advice, Advisors, and the proxied interfaces.
@@ -49,18 +56,21 @@ public interface Advised extends TargetClassAware {
 	boolean isProxyTargetClass();
 
 	/**
+	 * 返回被代理的接口们
 	 * Return the interfaces proxied by the AOP proxy.
 	 * <p>Will not include the target class, which may also be proxied.
 	 */
 	Class<?>[] getProxiedInterfaces();
 
 	/**
+	 * 检查这个指定的接口是否被代理了
 	 * Determine whether the given interface is proxied.
 	 * @param intf the interface to check
 	 */
 	boolean isInterfaceProxied(Class<?> intf);
 
 	/**
+	 * 设置一个源，只有 isFrozen 为 false 才能调用此方法
 	 * Change the {@code TargetSource} used by this {@code Advised} object.
 	 * <p>Only works if the configuration isn't {@linkplain #isFrozen frozen}.
 	 * @param targetSource new TargetSource to use
@@ -93,6 +103,7 @@ public interface Advised extends TargetClassAware {
 	boolean isExposeProxy();
 
 	/**
+	 * 默认是 false，和 ClassFilter 接口有关，暂时不做讨论
 	 * Set whether this proxy configuration is pre-filtered so that it only
 	 * contains applicable advisors (matching this proxy's target class).
 	 * <p>Default is "false". Set this to "true" if the advisors have been
@@ -109,6 +120,7 @@ public interface Advised extends TargetClassAware {
 	boolean isPreFiltered();
 
 	/**
+	 * 拿到作用在当前代理商得所有通知(和切面的适配器)
 	 * Return the advisors applying to this proxy.
 	 * @return a list of Advisors applying to this proxy (never {@code null})
 	 */
@@ -124,6 +136,7 @@ public interface Advised extends TargetClassAware {
 	}
 
 	/**
+	 * 相当于在通知(拦截器)链的最后一个加入一个新的
 	 * Add an advisor at the end of the advisor chain.
 	 * <p>The Advisor may be an {@link org.springframework.aop.IntroductionAdvisor},
 	 * in which new interfaces will be available when a proxy is next obtained
@@ -142,6 +155,7 @@ public interface Advised extends TargetClassAware {
 	void addAdvisor(int pos, Advisor advisor) throws AopConfigException;
 
 	/**
+	 * 按照角标移除一个通知
 	 * Remove the given advisor.
 	 * @param advisor the advisor to remove
 	 * @return {@code true} if the advisor was removed; {@code false}
@@ -180,6 +194,9 @@ public interface Advised extends TargetClassAware {
 	boolean replaceAdvisor(Advisor a, Advisor b) throws AopConfigException;
 
 	/**
+	 * 增加通知得相关方法  采用了适配器的模式
+	 * 最终都会变成一个 DefaultIntroductionAdvisor (包装Advice的)
+	 *
 	 * Add the given AOP Alliance advice to the tail of the advice (interceptor) chain.
 	 * <p>This will be wrapped in a DefaultPointcutAdvisor with a pointcut that always
 	 * applies, and returned from the {@code getAdvisors()} method in this wrapped form.

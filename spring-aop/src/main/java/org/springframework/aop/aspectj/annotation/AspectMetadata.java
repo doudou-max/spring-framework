@@ -32,6 +32,8 @@ import org.springframework.aop.framework.AopConfigException;
 import org.springframework.aop.support.ComposablePointcut;
 
 /**
+ * 表示一个切面的元数据类
+ *
  * Metadata for an AspectJ aspect class, with an additional Spring AOP pointcut
  * for the per clause.
  *
@@ -60,12 +62,16 @@ public class AspectMetadata implements Serializable {
 	private final Class<?> aspectClass;
 
 	/**
+	 * AjType 这个字段非常的关键，它表示有非常非常多得关于这个切面的一些数据、方法(位于 org.aspectj 下)
 	 * AspectJ reflection information (AspectJ 5 / Java 5 specific).
 	 * Re-resolved on deserialization since it isn't serializable itself.
 	 */
 	private transient AjType<?> ajType;
 
 	/**
+	 * 解析切入点表达式用的，但是真正的解析工作为委托给 `org.aspectj.weaver.tools.PointcutExpression` 来解析的
+	 * 若是单例：则是 Pointcut.TRUE，否则为 AspectJExpressionPointcut
+	 *
 	 * Spring AOP pointcut corresponding to the per clause of the
 	 * aspect. Will be the Pointcut.TRUE canonical instance in the
 	 * case of a singleton, otherwise an AspectJExpressionPointcut.
@@ -83,6 +89,8 @@ public class AspectMetadata implements Serializable {
 
 		Class<?> currClass = aspectClass;
 		AjType<?> ajType = null;
+		// 此处会一直遍历到顶层知道 Object  直到找到有一个是 Aspect 切面就行，然后保存起来
+		// 因此我们的切面写在父类上 也是 OK 的
 		while (currClass != Object.class) {
 			AjType<?> ajTypeToCheck = AjTypeSystem.getAjType(currClass);
 			if (ajTypeToCheck.isAspect()) {
@@ -91,32 +99,40 @@ public class AspectMetadata implements Serializable {
 			}
 			currClass = currClass.getSuperclass();
 		}
+		// 由此可见，我们传进来的 Class 必须是个切面或者切面的子类的
 		if (ajType == null) {
 			throw new IllegalArgumentException("Class '" + aspectClass.getName() + "' is not an @AspectJ aspect");
 		}
+		// 显然 Spring AOP 目前也不支持优先级的声明
 		if (ajType.getDeclarePrecedence().length > 0) {
 			throw new IllegalArgumentException("DeclarePrecedence not presently supported in Spring AOP");
 		}
 		this.aspectClass = ajType.getJavaClass();
 		this.ajType = ajType;
 
+		// 切面的处在类型：PerClauseKind，由此可议看出，Spring 的 aop 目前只支持下面 4 种
 		switch (this.ajType.getPerClause().getKind()) {
 			case SINGLETON:
+				// 如国是单例，这个表达式返回这个常量
 				this.perClausePointcut = Pointcut.TRUE;
 				return;
 			case PERTARGET:
 			case PERTHIS:
+				// PERTARGET 和 PERTHIS 处理方式一样，返回的是 AspectJExpressionPointcut
 				AspectJExpressionPointcut ajexp = new AspectJExpressionPointcut();
 				ajexp.setLocation(aspectClass.getName());
+				// 设置好，切点表达式
 				ajexp.setExpression(findPerClause(aspectClass));
 				ajexp.setPointcutDeclarationScope(aspectClass);
 				this.perClausePointcut = ajexp;
 				return;
 			case PERTYPEWITHIN:
 				// Works with a type pattern
+				// 组成的、合成得切点表达式~~~
 				this.perClausePointcut = new ComposablePointcut(new TypePatternClassFilter(findPerClause(aspectClass)));
 				return;
 			default:
+				// 其余的 Spring AOP 暂时不支持
 				throw new AopConfigException(
 						"PerClause " + ajType.getPerClause().getKind() + " not supported by Spring AOP for " + aspectClass);
 		}
@@ -163,6 +179,7 @@ public class AspectMetadata implements Serializable {
 	}
 
 	/**
+	 * 判断 perThis 或者 perTarget，最单实例、多实例处理
 	 * Return whether the aspect is defined as "perthis" or "pertarget".
 	 */
 	public boolean isPerThisOrPerTarget() {
@@ -171,6 +188,7 @@ public class AspectMetadata implements Serializable {
 	}
 
 	/**
+	 * 是否是 within 的
 	 * Return whether the aspect is defined as "pertypewithin".
 	 */
 	public boolean isPerTypeWithin() {
@@ -179,6 +197,7 @@ public class AspectMetadata implements Serializable {
 	}
 
 	/**
+	 * 只要不是单例的，就都属于 Lazy 懒加载，延迟实例化的类型
 	 * Return whether the aspect needs to be lazily instantiated.
 	 */
 	public boolean isLazilyInstantiated() {

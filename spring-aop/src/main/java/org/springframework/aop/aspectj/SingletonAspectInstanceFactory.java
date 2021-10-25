@@ -23,6 +23,9 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * SingletonAspectInstanceFactory：这个就更简单了，因为已经持有 aspectInstance 得引用了，
+ * 直接 return 即可
+ *
  * Implementation of {@link AspectInstanceFactory} that is backed by a
  * specified singleton object, returning the same instance for every
  * {@link #getAspectInstance()} call.

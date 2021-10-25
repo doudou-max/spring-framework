@@ -19,6 +19,9 @@ package org.springframework.aop;
 import org.springframework.lang.Nullable;
 
 /**
+ * 该接口代表一个目标对象，在aop调用目标对象的时候，使用该接口返回真实的对象。
+ * 比如它有其中两个实现SingletonTargetSource和PrototypeTargetSource代表着每次调用返回同一个实例，和每次调用返回一个新的实例
+ *
  * A {@code TargetSource} is used to obtain the current "target" of
  * an AOP invocation, which will be invoked via reflection if no around
  * advice chooses to end the interceptor chain itself.
