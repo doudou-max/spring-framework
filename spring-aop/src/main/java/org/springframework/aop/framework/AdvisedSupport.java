@@ -379,9 +379,12 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 	}
 
 	/**
-	 * advice 最终都会备转换成一个`Advisor`(DefaultPointcutAdvisor 表示切面+通知)，它使用的切面为Pointcut.TRUE
+	 * advice 最终都会备转换成一个`Advisor`(DefaultPointcutAdvisor 表示切面 + 通知)，它使用的切面为Pointcut.TRUE
 	 * Pointcut.TRUE：表示啥都返回true，也就是说这个增强通知将作用于所有的方法上/所有的方法
 	 * 若要自己指定切面(比如切点表达式),使用它的另一个构造函数：public DefaultPointcutAdvisor(Pointcut pointcut, Advice advice)
+	 *
+	 * addAdvice：此处就是个Advice前置通知增强器
+	 * 最终会被包装成DefaultPointcutAdvisor交给ProxyCreatorSupport
 	 *
 	 * @param advice the advice to add to the tail of the chain
 	 * @throws AopConfigException

@@ -42,6 +42,8 @@ public class ProxyFactory extends ProxyCreatorSupport {
 	}
 
 	/**
+	 * setTarget 和 setInterfaces 交给 ProxyCreatorSupport
+	 *
 	 * Create a new ProxyFactory.
 	 * <p>Will proxy all interfaces that the given target implements.
 	 * @param target the target object to be proxied
@@ -86,6 +88,12 @@ public class ProxyFactory extends ProxyCreatorSupport {
 
 
 	/**
+	 * getProxy() 才是关键，他内部会去 new 出来一个 JdkDynamicAopProxy 或者 CglibAopProxy
+	 * 然后调用其 getProxy() 获取到动态代理出来的对象
+	 *
+	 * createAopProxy() 会自动判断返回 JdkDynamicAopProxy 还是返回 ObjenesisCglibAopProxy
+	 * 然后根据对象去调用不同的实现，获取到代理的实例对象
+	 *
 	 * Create a new proxy according to the settings in this factory.
 	 * <p>Can be called repeatedly. Effect will vary if we've added
 	 * or removed interfaces. Can add and remove interceptors.
@@ -94,6 +102,8 @@ public class ProxyFactory extends ProxyCreatorSupport {
 	 * @return the proxy object
 	 */
 	public Object getProxy() {
+		// getProxy() 会返回一个 JdkDynamicAopProxy 或者 CglibAopProxy
+		// 然后拿到代理将其转成接口，通过接口去调用方法
 		return createAopProxy().getProxy();
 	}
 

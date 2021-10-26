@@ -150,6 +150,11 @@ class CglibAopProxy implements AopProxy, Serializable {
 	}
 
 
+	/**
+	 * 它的两个 getProxy() 相对来说比较简单，就是使用 CGLIB 的方式，利用 Enhancer 创建了一个增强的实例
+	 * 这里面比较复杂的地方在：getCallbacks() 这步是比较繁琐的
+	 * setCallbackFilter 就是看看哪些方法需要拦截、哪些不需要
+	 */
 	@Override
 	public Object getProxy() {
 		return getProxy(null);
@@ -350,6 +355,9 @@ class CglibAopProxy implements AopProxy, Serializable {
 	}
 
 
+	/**
+	 * CGLIB重写的这两个方法
+	 */
 	@Override
 	public boolean equals(@Nullable Object other) {
 		return (this == other || (other instanceof CglibAopProxy &&
@@ -647,6 +655,14 @@ class CglibAopProxy implements AopProxy, Serializable {
 
 
 	/**
+	 * 最后，所有的被代理得类的所有的方法调用，都会进入DynamicAdvisedInterceptor#intercept这个方法里面来 (相当于 JDK动态代理 得 invoke() 方法)
+	 * 它实现了MethodInterceptor接口
+	 *
+	 * 细节：
+	 * 	 和 JDK 的一样，Object 的方法，只有 toString() 会被拦截(执行通知)
+	 *   生成出来的代理对象，Spring 默认都给你实现了接口：SpringProxy、DecoratingProxy、Advised
+	 *   它和 JDK 不同的是，比如 equals 和 hashCode 等方法根本就不会进入 intercept() 方法，而是在 getCallbacks() 那里就给特殊处理掉了
+	 *
 	 * General purpose AOP callback. Used when the target is dynamic or when the
 	 * proxy is not frozen.
 	 */
@@ -664,6 +680,8 @@ class CglibAopProxy implements AopProxy, Serializable {
 			Object oldProxy = null;
 			boolean setProxyContext = false;
 			Object target = null;
+			// 目标对象源
+			// 比如：SingletonTargetSource  HotSwappableTargetSource  PrototypeTargetSource  ThreadLocalTargetSource等等
 			TargetSource targetSource = this.advised.getTargetSource();
 			try {
 				if (this.advised.exposeProxy) {
@@ -674,10 +692,12 @@ class CglibAopProxy implements AopProxy, Serializable {
 				// Get as late as possible to minimize the time we "own" the target, in case it comes from a pool...
 				target = targetSource.getTarget();
 				Class<?> targetClass = (target != null ? target.getClass() : null);
+				// 一样的，也是拿到和这个方法匹配的 所有的增强器、通知们 和JDK Proxy中是一样的
 				List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);
 				Object retVal;
 				// Check whether we only have one InvokerInterceptor: that is,
 				// no real advice, but just reflective invocation of the target.
+				// 没有增强器，同时该方法是 public 得  就直接调用目标方法（不拦截）
 				if (chain.isEmpty() && Modifier.isPublic(method.getModifiers())) {
 					// We can skip creating a MethodInvocation: just invoke the target directly.
 					// Note that the final invoker must be an InvokerInterceptor, so we know

@@ -32,6 +32,13 @@ import org.springframework.util.ReflectionUtils;
  * 我们知道带参数的构造等不能通过 class.newInstance() 实例化的，通过它可以轻松完成
  * 基于 Objenesis 的 CglibAopProxy 扩展，用于创建代理实例，没有调用类的构造器(厉害了)
  *
+ * ObjenesisCglibAopProxy 继承自 CglibAopProxy，它只重写了 createProxyClassAndInstance() 方法
+ *
+ * Spring4.0之后提供的
+ *
+ * 本来要想使用 ASM 和 CGLIB，我们是需要引入 cglib 相关的 jar 包的。但是从 spring3.2 以后，我们就不用再单独因此此 Jar，
+ * 因为 spring 已经帮我们集成在 spring-core 里面了
+ *
  * Objenesis-based extension of {@link CglibAopProxy} to create proxy instances
  * without invoking the constructor of the class. Used by default as of Spring 4.
  *
@@ -56,11 +63,19 @@ class ObjenesisCglibAopProxy extends CglibAopProxy {
 	}
 
 
+	/**
+	 * 创建一个代理得实例
+	 *
+	 * @param enhancer
+	 * @param callbacks
+	 * @return
+	 */
 	@Override
 	protected Object createProxyClassAndInstance(Enhancer enhancer, Callback[] callbacks) {
 		Class<?> proxyClass = enhancer.createClass();
 		Object proxyInstance = null;
 
+		// 如果为 true，那我们就采用 objenesis 去 new 一个实例
 		if (objenesis.isWorthTrying()) {
 			try {
 				proxyInstance = objenesis.newInstance(proxyClass, enhancer.getUseCache());
@@ -71,12 +86,14 @@ class ObjenesisCglibAopProxy extends CglibAopProxy {
 			}
 		}
 
+		// 若果还为 null，就再去拿到构造函数（指定参数的）
 		if (proxyInstance == null) {
 			// Regular instantiation via default constructor...
 			try {
 				Constructor<?> ctor = (this.constructorArgs != null ?
 						proxyClass.getDeclaredConstructor(this.constructorArgTypes) :
 						proxyClass.getDeclaredConstructor());
+				// 通过此构造函数，去 new 一个实例
 				ReflectionUtils.makeAccessible(ctor);
 				proxyInstance = (this.constructorArgs != null ?
 						ctor.newInstance(this.constructorArgs) : ctor.newInstance());

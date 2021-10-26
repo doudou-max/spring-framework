@@ -58,6 +58,11 @@ public class DefaultAopProxyFactory implements AopProxyFactory, Serializable {
 	/**
 	 * DefaultAopProxyFactory#createAopProxy
 	 *
+	 * 若实现类接口，使用 JdkDynamicAopProxy 最终去创建，否则交给 ObjenesisCglibAopProxy
+	 * 拿到 AopProxy 后，调用 AopProxy#getProxy() 就会拿到这个代理对象，从而进行相应的工作
+	 *
+	 * 默认情况下，若我们实现了接口，就实用 JDK动态代理，若没有就实用 CGLIB
+	 *
 	 * @param config the AOP configuration in the form of an
 	 * AdvisedSupport object
 	 */
@@ -74,14 +79,16 @@ public class DefaultAopProxyFactory implements AopProxyFactory, Serializable {
 						"Either an interface or a target is required for proxy creation.");
 			}
 			// 倘若目标 Class 本身就是个接口，或者它已经是个 JDK 的代理类
-			// Proxy 的子类，所有的JDK代理类都是此类的子类，那还是用 JDK 的动态代理吧
+			// Proxy 的子类，所有的 JDK 代理类都是此类的子类，那还是用 JDK 的动态代理吧
 			if (targetClass.isInterface() || Proxy.isProxyClass(targetClass)) {
 				return new JdkDynamicAopProxy(config);
 			}
 			// 实用 CGLIB 代理方式 ObjenesisCglibAopProxy 是 CglibAopProxy 的子类。Spring4.0 之后提供的
+			// 普通的类代理方式，一般采用这个 ObjenesisCglibAopProxy
 			return new ObjenesisCglibAopProxy(config);
 		}
-		// 否则(一般都是有实现接口)都会采用JDK得动态代理
+		// 否则(一般都是有实现接口)都会采用 JDK动态代理
+		// 接口方式代理直接跳到这里 jdk 动态代理
 		else {
 			return new JdkDynamicAopProxy(config);
 		}

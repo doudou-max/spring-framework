@@ -17,6 +17,9 @@
 package org.springframework.aop.framework;
 
 /**
+ * AOP 代理主要分为静态代理和动态代理，静态代理的代表为AspectJ；而动态代理则以Spring AOP为代表。
+ * 静态代理是编译期实现，动态代理是运行期实现，可想而知前者拥有更好的性能。
+ *
  * Interface to be implemented by factories that are able to create
  * AOP proxies based on {@link AdvisedSupport} configuration objects.
  *
@@ -44,6 +47,8 @@ package org.springframework.aop.framework;
 public interface AopProxyFactory {
 
 	/**
+	 * 只有唯一的一个实现类： DefaultAopProxyFactory#createAopProxy
+	 *
 	 * Create an {@link AopProxy} for the given AOP configuration.
 	 * @param config the AOP configuration in the form of an
 	 * AdvisedSupport object

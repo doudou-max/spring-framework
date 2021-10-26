@@ -112,6 +112,7 @@ public class ProxyCreatorSupport extends AdvisedSupport {
 		}
 		// 由此可以看出，它还是委托给了 `AopProxyFactory` 去做这件事
 		// 它的实现类为：DefaultAopProxyFactory
+		// 自动判断返回 JdkDynamicAopProxy 或者 ObjenesisCglibAopProxy
 		return getAopProxyFactory().createAopProxy(this);
 	}
 
