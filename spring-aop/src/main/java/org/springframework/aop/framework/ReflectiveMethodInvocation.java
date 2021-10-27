@@ -31,6 +31,8 @@ import org.springframework.core.BridgeMethodResolver;
 import org.springframework.lang.Nullable;
 
 /**
+ * spring 给我们提供的唯一(其实算唯二吧)的实现类，它执行着拦截的核心逻辑，会让所有的通知器都执行
+ *
  * Spring's implementation of the AOP Alliance
  * {@link org.aopalliance.intercept.MethodInvocation} interface,
  * implementing the extended
@@ -50,6 +52,10 @@ import org.springframework.lang.Nullable;
  * with existing framework integrations (e.g. Pitchfork). For any other
  * purposes, use the {@link ProxyMethodInvocation} interface instead.
  *
+ * 从这里我们需要注意到的是：ProxyMethodInvocation(ReflectiveMethodInvocation) 是代理执行的入口。
+ * 然后内部会把所有的 增强器 都拿出来 递归执行 (比如前置通知，就在目标方法之前执行)
+ * **这就实现了指定次序的链式调用**
+ *
  * @author Rod Johnson
  * @author Juergen Hoeller
  * @author Adrian Colyer
@@ -61,12 +67,12 @@ import org.springframework.lang.Nullable;
  */
 public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Cloneable {
 
-	protected final Object proxy;
+	protected final Object proxy;  // 代理对象
 
 	@Nullable
-	protected final Object target;
+	protected final Object target; // 目标对象
 
-	protected final Method method;
+	protected final Method method; // 被拦截的方法
 
 	protected Object[] arguments;
 
@@ -86,6 +92,8 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 	protected final List<?> interceptorsAndDynamicMethodMatchers;
 
 	/**
+	 * currentInterceptorIndex初始值为 -1
+	 *
 	 * Index from 0 of the current interceptor we're invoking.
 	 * -1 until we invoke: then the current interceptor.
 	 */
@@ -93,6 +101,15 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 
 
 	/**
+	 * 唯一的构造函数，注意是 protected 相当于只能本包内、以及子类可以调用，外部是不能直接初始化的此对象的(显然就是 spring 内部使用的类了嘛)
+	 * invocation = new ReflectiveMethodInvocation(proxy, target, method, args, targetClass, chain);
+	 *    proxy：代理对象
+	 *    target：目标对象
+	 *    method：被代理的方法
+	 *    args：方法的参数们
+	 *    targetClass：目标方法的 Class (target != null ? target.getClass() : null)
+	 *    interceptorsAndDynamicMethodMatchers：拦截链。  this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass) 这个方法找出来的
+	 *
 	 * Construct a new ReflectiveMethodInvocation with the given arguments.
 	 * @param proxy the proxy object that the invocation was made on
 	 * @param target the target object to invoke
@@ -112,7 +129,10 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 		this.proxy = proxy;
 		this.target = target;
 		this.targetClass = targetClass;
+		// 找到桥接方法，作为最后执行的方法。至于什么是桥接方法，自行百度关键字：bridge method
+		// 桥接方法是 JDK 1.5 引入泛型后，为了使Java的泛型方法生成的字节码和 1.5 版本前的字节码相兼容，由编译器自动生成的方法（子类实现父类的泛型方法时会生成桥接方法）
 		this.method = BridgeMethodResolver.findBridgedMethod(method);
+		// 对参数进行适配
 		this.arguments = AopProxyUtils.adaptArgumentsIfNecessary(method, arguments);
 		this.interceptorsAndDynamicMethodMatchers = interceptorsAndDynamicMethodMatchers;
 	}
@@ -129,12 +149,17 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 		return this.target;
 	}
 
+	/**
+	 * 此处：getStaticPart 返回的就是当前得 method
+	 */
 	@Override
 	public final AccessibleObject getStaticPart() {
 		return this.method;
 	}
 
 	/**
+	 * 注意：这里返回的可能是桥接方法哦
+	 *
 	 * Return the method invoked on the proxied interface.
 	 * May or may not correspond with a method invoked on an underlying
 	 * implementation of that interface.
@@ -155,39 +180,56 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 	}
 
 
+	/**
+	 * 这里就是核心了，要执行方法、执行通知、都是在此处搞定的
+	 * 这里面运用 递归调用 的方式，非常具有技巧性
+	 */
 	@Override
 	@Nullable
 	public Object proceed() throws Throwable {
 		// We start with an index of -1 and increment early.
+		// currentInterceptorIndex 初始值为 -1，如果执行到链条的末尾 则直接调用连接点方法 即 直接调用目标方法
 		if (this.currentInterceptorIndex == this.interceptorsAndDynamicMethodMatchers.size() - 1) {
+			// 这个方法相当于调用了目标方法，下面会分析
 			return invokeJoinpoint();
 		}
 
+		// 获取集合中的 MethodInterceptor (并且 currentInterceptorIndex + 1 了)
 		Object interceptorOrInterceptionAdvice =
 				this.interceptorsAndDynamicMethodMatchers.get(++this.currentInterceptorIndex);
+		// InterceptorAndDynamicMethodMatcher 它是 spring 内部使用的一个类。很简单，就是把 MethodInterceptor 实例和 MethodMatcher 放在了一起，
+		// 看看在 advisor chain 里面是否能够匹配上
 		if (interceptorOrInterceptionAdvice instanceof InterceptorAndDynamicMethodMatcher) {
 			// Evaluate dynamic method matcher here: static part will already have
 			// been evaluated and found to match.
 			InterceptorAndDynamicMethodMatcher dm =
 					(InterceptorAndDynamicMethodMatcher) interceptorOrInterceptionAdvice;
 			Class<?> targetClass = (this.targetClass != null ? this.targetClass : this.method.getDeclaringClass());
+			// 去匹配这个拦截器是否适用于这个目标方法  试用就执行拦截器得 invoke() 方法
 			if (dm.methodMatcher.matches(this.method, targetClass, this.arguments)) {
 				return dm.interceptor.invoke(this);
 			}
 			else {
 				// Dynamic matching failed.
 				// Skip this interceptor and invoke the next in the chain.
+				// 如果不匹配，就跳过此拦截器，而继续执行下一个拦截器
+				// 注意：这里是递归调用，并不是循环调用
 				return proceed();
 			}
 		}
 		else {
 			// It's an interceptor, so we just invoke it: The pointcut will have
 			// been evaluated statically before this object was constructed.
+			// 直接执行此拦截器。说明之前已经匹配好了，只有匹配上的方法才会被拦截进来的
+			// 这里传入 this 就是传入 ReflectiveMethodInvocation，从而形成了一个链条
 			return ((MethodInterceptor) interceptorOrInterceptionAdvice).invoke(this);
 		}
 	}
 
 	/**
+	 * 其实就是简单的一个：method.invoke(target, args);
+	 * 子类可以复写此方法，去执行。比如它的唯一子类CglibAopProxy内部类  CglibMethodInvocation就复写了这个方法  它对public的方法做了一个处理（public方法调用MethodProxy.invoke）
+	 *
 	 * Invoke the joinpoint using reflection.
 	 * Subclasses can override this to use custom invocation.
 	 * @return the return value of the joinpoint

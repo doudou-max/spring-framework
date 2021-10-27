@@ -168,23 +168,25 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 		}
 	}
 
-	// 对于这部分代码和采用CGLIB的大部分逻辑都是一样的，Spring对此的解释很有意思：
-	// 本来是可以抽取出来的，使得代码看起来更优雅。但是因为此会带来10%得性能损耗，所以Spring最终采用了粘贴复制的方式各用一份
-	// Spring说它提供了基础的套件，来保证两个的执行行为是一致的。
-	// proxy:指的是我们所代理的那个真实的对象；method:指的是我们所代理的那个真实对象的某个方法的Method对象args:指的是调用那个真实对象方法的参数。
+	// 对于这部分代码和采用 cglib 的大部分逻辑都是一样的，spring 对此的解释很有意思：
+	//    本来是可以抽取出来的，使得代码看起来更优雅。但是因为此会带来10%得性能损耗，所以 spring 最终采用了粘贴复制的方式各用一份
+	//    spring 说它提供了基础的套件，来保证两个的执行行为是一致的
+	//    	  proxy: 指的是我们所代理的那个真实的对象；
+	//    	  method: 指的是我们所代理的那个真实对象的某个方法的 method
+	//    	  args: 指的是调用那个真实对象方法的参数。
 
 	/**
 	 * 此处重点分析一下此方法，这样在 CGLIB 的时候，就可以一带而过了，因为大致逻辑是一样的
 	 *
 	 * 细节：
 	 * 	除了实现类里自己写的方法(接口上没有的)，其余方法统一都会进入代理得 invoke() 方法里面；
-	 * 	只是invoke上做了很多特殊处理，比如DecoratingProxy和Advised等等的方法，都是直接执行了。
+	 * 	只是 invoke() 上做了很多特殊处理，比如 DecoratingProxy 和 Advised 等等的方法，都是直接执行了。
 	 *
 	 * 	object 的方法中，toString() 方法会被增强 (至于为何，我至今还没找到原因，麻烦的知道的给个答案)
 	 * 	因为我始终不知道 AdvisedSupport#methodCache 这个字段事什么把 toString() 方法缓存上的，打断点都没跟踪上
 	 *
 	 * 	生成出来的代理对象，spring 默认都给你实现了接口：SpringProxy、DecoratingProxy、Advised
-	 *  说明：CGLIB代理出来的对象没有实现接口DecoratingProxy。
+	 *  说明：CGLIB 代理出来的对象没有实现接口 DecoratingProxy。
 	 *
 	 * Implementation of {@code InvocationHandler.invoke}.
 	 * <p>Callers will see exactly the exception thrown by the target,
@@ -202,8 +204,8 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 		Object target = null;
 
 		try {
-			// “通常情况”Spring AOP不会对equals、hashCode方法进行拦截增强,所以此处做了处理
-			// equalsDefined为false（表示自己没有定义过eequals方法）  那就交给代理去比较
+			// “通常情况” Spring AOP不会对equals、hashCode方法进行拦截增强,所以此处做了处理
+			// equalsDefined为false（表示自己没有定义过equals方法）  那就交给代理去比较
 			// hashCode同理，只要你自己没有实现过此方法，那就交给代理吧
 			// 需要注意的是：这里统一指的是，如果接口上有此方法，但是你自己并没有实现equals和hashCode方法，那就走AOP这里的实现
 			// 如国接口上没有定义此方法，只是实现类里自己@Override了HashCode，那是无效的，就是普通执行吧

@@ -21,6 +21,9 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.lang.Nullable;
 
 /**
+ * spring 提供的对 MethodInvocation 的扩展：
+ * 		ReflectiveMethodInvocation 和 CglibMethodInvocation 两种方式的实现
+ *
  * Extension of the AOP Alliance {@link org.aopalliance.intercept.MethodInvocation}
  * interface, allowing access to the proxy that the method invocation was made through.
  *
@@ -36,12 +39,16 @@ import org.springframework.lang.Nullable;
 public interface ProxyMethodInvocation extends MethodInvocation {
 
 	/**
+	 * 返回代理对象
+	 *
 	 * Return the proxy that this method invocation was made through.
 	 * @return the original proxy object
 	 */
 	Object getProxy();
 
 	/**
+	 * 克隆一个，使用的 Object 得clone() 方法
+	 *
 	 * Create a clone of this object. If cloning is done before {@code proceed()}
 	 * is invoked on this object, {@code proceed()} can be invoked once per clone
 	 * to invoke the joinpoint (and the rest of the advice chain) more than once.
@@ -62,6 +69,8 @@ public interface ProxyMethodInvocation extends MethodInvocation {
 	MethodInvocation invocableClone(Object... arguments);
 
 	/**
+	 * 设置参数、增强器、通知们执行的时候可能会用到
+	 *
 	 * Set the arguments to be used on subsequent invocations in the any advice
 	 * in this chain.
 	 * @param arguments the argument array
@@ -69,6 +78,8 @@ public interface ProxyMethodInvocation extends MethodInvocation {
 	void setArguments(Object... arguments);
 
 	/**
+	 * 添加一些属性 k v，这些 k v 并不会用于 aop 框架内，而是保存下来给特殊的一些拦截器实用
+	 *
 	 * Add the specified user attribute with the given value to this invocation.
 	 * <p>Such attributes are not used within the AOP framework itself. They are
 	 * just kept as part of the invocation object, for use in special interceptors.

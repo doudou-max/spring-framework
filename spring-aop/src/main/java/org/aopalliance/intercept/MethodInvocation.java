@@ -21,11 +21,18 @@ import java.lang.reflect.Method;
 import javax.annotation.Nonnull;
 
 /**
+ * 法调用时，对这部分进行描述
+ *
  * Description of an invocation to a method, given to an interceptor
  * upon method-call.
  *
  * <p>A method invocation is a joinpoint and can be intercepted by a
  * method interceptor.
+ *
+ * MethodInvocation 作为 aopalliance 里提供的最底层接口了。
+ * spring 提供了相关的实现：ReflectiveMethodInvocation
+ *
+ * spring 自己也定义了一个接口，来进行扩展和统一管理：ProxyMethodInvocation
  *
  * @author Rod Johnson
  * @see MethodInterceptor

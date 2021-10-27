@@ -20,6 +20,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
+ * 需要说明的 cglib 包里也存在一个 MethodInterceptor，它的主要作用是CGLIB内部使用，
+ * 一般是和Enhancer一起来使用而创建一个动态代理对象。
+ *
+ * 而本处我们讲到的 org.aopalliance.intercept.MethodInterceptor，那些 @AspectJ 定义的通知们(增强器们)，
+ * 或者是自己实现的 MethodBeforeAdvice、AfterReturningAdvice…(总是都是org.aopalliance.aop.Advice一个通知器)，
+ * 最终都会被包装成一个 org.aopalliance.intercept.MethodInterceptor，最终交给 MethodInvocation
+ * (其子类ReflectiveMethodInvocation)去执行，它会把你所有的增强器都给执行了，这就是我们面向切面编程的核心思路过程。
+ *
  * Intercepts calls on an interface on its way to the target. These
  * are nested "on top" of the target.
  *
@@ -40,12 +48,17 @@ import javax.annotation.Nullable;
  * }
  * </pre>
  *
+ * 从名字里都能看出来，它是通过拦截方法的执行来实现通知得效果的
+ *
  * @author Rod Johnson
  */
 @FunctionalInterface
 public interface MethodInterceptor extends Interceptor {
 
 	/**
+	 * 可议在此方法里，在方法执行之前、之后做对应的处理。
+	 * 需要执行的时候，调用 invocation.proceed() 方法即可
+	 *
 	 * Implement this method to perform extra treatments before and
 	 * after the invocation. Polite implementations would certainly
 	 * like to invoke {@link Joinpoint#proceed()}.

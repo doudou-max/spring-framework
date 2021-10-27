@@ -31,6 +31,8 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * 包装的 ThrowsAdvice，实际处理起来稍微复杂点
+ *
  * Interceptor to wrap an after-throwing advice.
  *
  * <p>The signatures on handler methods on the {@code ThrowsAdvice}

@@ -25,10 +25,16 @@ public class AopJdkMain {
 		// advice 通知
 		proxyFactory.addAdvice((MethodBeforeAdvice) (method, args1, target) -> System.out.println("你被拦截了：方法名为：" + method.getName() + " 参数为--" + Arrays.asList(args1)));
 
+		// 这里拿到的是一个代理对象，不是通过对类的实例化拿到
 		DemoInterface demo = (DemoInterface) proxyFactory.getProxy();
-		//你被拦截了：方法名为：hello 参数为--[]
-		//this demo show
+		// 你被拦截了：方法名为：hello 参数为--[]
+		// this demo show
+		// 在这一步去调用 invoke()，通过代理对象去调用对应的类中的方法
 		demo.hello();
+
+
+		System.out.println("-----------------------------------------------------");
+
 
 		System.out.println(proxyFactory.getTargetClass()); // class org.springframework.aop.demo.Demo
 		System.out.println(proxyFactory.getTargetSource()); // SingletonTargetSource for target object [org.springframework.aop.demo.Demo@3224f60b]

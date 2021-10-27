@@ -27,6 +27,8 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * 对 AfterReturningAdvice 的一个包装
+ *
  * Interceptor to wrap an {@link org.springframework.aop.AfterReturningAdvice}.
  * Used internally by the AOP framework; application developers should not need
  * to use this class directly.
@@ -55,6 +57,7 @@ public class AfterReturningAdviceInterceptor implements MethodInterceptor, After
 	@Nullable
 	public Object invoke(MethodInvocation mi) throws Throwable {
 		Object retVal = mi.proceed();
+		// 调用 afterReturning，它是能够享受到返回值的
 		this.advice.afterReturning(retVal, mi.getMethod(), mi.getArguments(), mi.getThis());
 		return retVal;
 	}
