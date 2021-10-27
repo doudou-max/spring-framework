@@ -98,6 +98,7 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 			this.environment = ((EnvironmentCapable) this.registry).getEnvironment();
 		}
 		else {
+			// 一般返回这个
 			this.environment = new StandardEnvironment();
 		}
 	}
@@ -254,6 +255,7 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 		Assert.notNull(locations, "Location array must not be null");
 		int count = 0;
 		for (String location : locations) {
+			// 读取文件，解析 xml 文件，加载 bean 定义
 			count += loadBeanDefinitions(location);
 		}
 		return count;

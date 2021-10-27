@@ -285,7 +285,7 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 				// 一些列的判断条件，如果返回值不为空，且为目标对象的话，就直接将目标对象赋值给retVal
 				retVal = proxy;
 			}
-			// 返回null，并且还不是Void类型。。。抛错
+			// 返回 null，并且还不是Void类型，抛错
 			else if (retVal == null && returnType != Void.TYPE && returnType.isPrimitive()) {
 				throw new AopInvocationException(
 						"Null return value from advice does not match primitive return type for: " + method);

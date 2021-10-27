@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context-2.5.xsd
+           http://www.springframework.org/schema/aop
+           http://www.springframework.org/schema/aop/spring-aop-2.5.xsd">
+	<aop:aspectj-autoproxy />
+
+	<bean id="personService" class="org.springframework.aop.xml.PersonServiceBean"/>
+
+	<bean id="myInterceptor" class="org.springframework.aop.xml.MyInterceptor"/>
+
+	<!-- aop 处理配置，需要处理的是哪一个类方法，处理哪里，怎么处理 -->
+	<aop:config>
+		<aop:aspect id="myAspect" ref="myInterceptor">
+			<!-- pointcut 切入点，表示需要进行 aop 处理的类方法 -->
+			<aop:pointcut  id="myPointCut"  expression="execution(* org.springframework.aop.xml.PersonServiceBean.*(..))" />
+			<!-- <aop:pointcut  id="myPointCut"  expression="execution(* org.springframework.*.*.*.*(..))" /> -->
+			<!-- 前置通知处理 -->
+			<aop:before pointcut-ref="myPointCut" method="doAccessCheck" />
+			<!-- 后置通知处理 -->
+			<aop:after-returning pointcut-ref="myPointCut"  method="doAfterReturning" />
+			<!-- 异常通知处理 -->
+			<aop:after-throwing pointcut-ref="myPointCut"  method="doAfterThrowing" />
+			<!-- 环绕通知处理 -->
+			<aop:around pointcut-ref="myPointCut" method="doAround" />
+			<!-- 最后通知处理 -->
+			<aop:after pointcut-ref="myPointCut" method="doAfter" />
+		</aop:aspect>
+	</aop:config>
+
+	<!--
+		拦截test.spring.service.impl.PersonServiceBean下的所有方法
+		expression="execution(* test.spring.service.impl.PersonServiceBean.*(..))"
+
+		拦截test.spring.service.impl子包下的所有类的所有方法
+		expression="execution(* test.spring.service.impl..*.*(..))"
+
+		拦截test.spring.service.impl.PersonServiceBean下的所有返回值为String类型的方法
+		expression="execution(java.lang.String test.spring.service.impl.PersonServiceBean.*(..))"
+
+		拦截test.spring.service.impl.PersonServiceBean下的所有方法中第一个参数类型为String的方法
+		expression="execution(* test.spring.service.impl.PersonServiceBean.*(java.lang.String,..))"
+	-->
+
+</beans>
