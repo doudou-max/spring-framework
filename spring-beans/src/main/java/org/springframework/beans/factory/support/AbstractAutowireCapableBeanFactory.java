@@ -1462,8 +1462,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					if (filteredPds == null) {
 						filteredPds = filterPropertyDescriptorsForDependencyCheck(bw, mbd.allowCaching);
 					}
-					// 关于postProcessPropertyValues的实现，有几个处理器是非常关键的：
-					// 比如AutowiredAnnotationBeanPostProcessor、CommonAnnotationBeanPostProcessor等等,且看下面的分解
+					// 关于 postProcessPropertyValues 的实现，有几个处理器是非常关键的：
+					// 比如 AutowiredAnnotationBeanPostProcessor、CommonAnnotationBeanPostProcessor 等等,且看下面的分解
 					pvsToUse = bp.postProcessPropertyValues(pvs, filteredPds, bw.getWrappedInstance(), beanName);
 					// 若返回null，Spring表示你已经属性值都设置好了，那他也不再管了
 					if (pvsToUse == null) {

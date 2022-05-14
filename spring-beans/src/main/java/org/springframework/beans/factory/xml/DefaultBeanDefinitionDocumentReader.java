@@ -93,7 +93,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	@Override
 	public void registerBeanDefinitions(Document doc, XmlReaderContext readerContext) {
 		this.readerContext = readerContext;
-		doRegisterBeanDefinitions(doc.getDocumentElement());
+		doRegisterBeanDefinitions(doc.getDocumentElement());   // 这里跳进去解析
 	}
 
 	/**
@@ -115,6 +115,9 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 
 
 	/**
+	 * 读取 xml 文件，解析文件之后，将文件转成 {@link Element} 处理
+	 * 到这一步已经处理成 {@link Element} 了
+	 *
 	 * Register each bean definition within the given root {@code <beans/>} element.
 	 */
 	@SuppressWarnings("deprecation")  // for Environment.acceptsProfiles(String...)
@@ -146,7 +149,8 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		}
 
 		preProcessXml(root);
-		parseBeanDefinitions(root, this.delegate);
+		// 这里去解析 aop xml 定义
+		parseBeanDefinitions(root, this.delegate);  // 从这里跳进去解析
 		postProcessXml(root);
 
 		this.delegate = parent;

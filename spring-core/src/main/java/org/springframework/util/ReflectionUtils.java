@@ -658,6 +658,8 @@ public abstract class ReflectionUtils {
 	}
 
 	/**
+	 * 传入目标类和回调处理
+	 *
 	 * Invoke the given callback on all locally declared fields in the given class.
 	 * @param clazz the target class to analyze
 	 * @param fc the callback to invoke for each field

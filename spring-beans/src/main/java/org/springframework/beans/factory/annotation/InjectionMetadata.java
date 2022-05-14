@@ -219,9 +219,10 @@ public class InjectionMetadata {
 		}
 
 		/**
-		 * Either this or {@link #getResourceToInject} needs to be overridden.
-		 * 这里我们就以最常用的AutowiredFieldElement为例讲解（它是一个普通内部类，为private的）：
+		 * 这里我们就以最常用的 AutowiredFieldElement 为例讲解(它是一个普通内部类，为private的):
 		 * 属性和方法的注入处理逻辑
+		 *
+		 * Either this or {@link #getResourceToInject} needs to be overridden.
 		 */
 		protected void inject(Object target, @Nullable String requestingBeanName, @Nullable PropertyValues pvs)
 				throws Throwable {

@@ -28,7 +28,6 @@ public class MainClass {
 //		// 这句将输出: hello world
 //		System.out.println(messageService.getMessage());
 
-
 //		ApplicationContext context = new AnnotationConfigApplicationContext(DemoComponent.class, User.class);
 //		DemoComponent demoComponent = context.getBean(DemoComponent.class);
 //		System.out.println("---------------" + demoComponent.say());
@@ -42,9 +41,10 @@ public class MainClass {
 
 		// 注解 applicationContext，必须结合 @Configuration 和 @Bean 一起使用
 //		ApplicationContext context = new AnnotationConfigApplicationContext("org.springframework.configuration", "org.springframework.component");
-		ApplicationContext context = new AnnotationConfigApplicationContext("org.springframework.configuration");
-		User user = context.getBean(User.class);
-		System.out.println("---------------" + user.say());
+
+//		ApplicationContext context = new AnnotationConfigApplicationContext("org.springframework.controller", "org.springframework.component");
+//		DemoComponent demoComponent = context.getBean(DemoComponent.class);
+//		System.out.println("---------------" + demoComponent.say());
 
 //		DemoComponent bean = context.getBean(DemoComponent.class);
 //		System.out.println("---------------" + bean.say());

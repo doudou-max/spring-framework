@@ -132,7 +132,7 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 							"] does not implement the [" + NamespaceHandler.class.getName() + "] interface");
 				}
 				NamespaceHandler namespaceHandler = (NamespaceHandler) BeanUtils.instantiateClass(handlerClass);
-				namespaceHandler.init();
+				namespaceHandler.init();   // TODO: 2021/10/28  跳到慕课网的 ppt 的 init()
 				handlerMappings.put(namespaceUri, namespaceHandler);
 				return namespaceHandler;
 			}

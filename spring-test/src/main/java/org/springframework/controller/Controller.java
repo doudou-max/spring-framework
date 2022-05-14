@@ -1,8 +1,8 @@
 package org.springframework.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.demo.MessageService;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.component.DemoComponent;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -12,12 +12,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class Controller {
 
-	@Autowired
-	private MessageService messageService;
+//	@Autowired
+//	private MessageService messageService;
 
-	@GetMapping("/test")
+	@Autowired
+	private DemoComponent demoComponent;
+
+	@PostMapping("/test")
 	public String test() {
-		return messageService.getMessage();
+//		return messageService.getMessage();
+		return demoComponent.say();
 	}
 
 

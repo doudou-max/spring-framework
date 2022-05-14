@@ -1372,6 +1372,8 @@ public class BeanDefinitionParserDelegate {
 	}
 
 	/**
+	 * 解析 aop.xml 文件，获取 namespace，解析 aop 在 xml 文件中的定义
+	 *
 	 * Parse a custom element (outside of the default namespace).
 	 * @param ele the element to parse
 	 * @param containingBd the containing bean definition (if any)
@@ -1383,7 +1385,8 @@ public class BeanDefinitionParserDelegate {
 		if (namespaceUri == null) {
 			return null;
 		}
-		NamespaceHandler handler = this.readerContext.getNamespaceHandlerResolver().resolve(namespaceUri);
+		// 这里跳转到 resolve
+		NamespaceHandler handler = this.readerContext.getNamespaceHandlerResolver().resolve(namespaceUri);   //  resolve() 跳转
 		if (handler == null) {
 			error("Unable to locate Spring NamespaceHandler for XML schema namespace [" + namespaceUri + "]", ele);
 			return null;

@@ -21,16 +21,16 @@ public class MyInterceptor {
 
 	// 4.最终
 	public void doAfter() {
-		System.out.println("最终通知");
+		System.out.println("最终通知-->>");
 	}
 
 	public void doAfterThrowing() {
-		System.out.println("异常通知-->");
+		System.out.println("异常通知-->>");
 	}
 
 	// 2.环绕
 	public Object doAround(ProceedingJoinPoint pJoinPoint) throws Throwable {
-		System.out.println("环绕通知");
+		System.out.println("环绕通知-->>");
 		// 这里如果 pJoinPoint.proceed() 不执行，后面拦截到的方法都不会执行，非常适用于权限管理
 		Object result = pJoinPoint.proceed();
 

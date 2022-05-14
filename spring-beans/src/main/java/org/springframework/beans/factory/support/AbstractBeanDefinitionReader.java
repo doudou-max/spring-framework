@@ -218,11 +218,12 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 					"Cannot load bean definitions from location [" + location + "]: no ResourceLoader available");
 		}
 
+		// 解析 aop.xml 属于 ResourcePatternResolver
 		if (resourceLoader instanceof ResourcePatternResolver) {
 			// Resource pattern matching available.
 			try {
 				Resource[] resources = ((ResourcePatternResolver) resourceLoader).getResources(location);
-				int count = loadBeanDefinitions(resources);
+				int count = loadBeanDefinitions(resources);  // 从这里进去解析
 				if (actualResources != null) {
 					Collections.addAll(actualResources, resources);
 				}

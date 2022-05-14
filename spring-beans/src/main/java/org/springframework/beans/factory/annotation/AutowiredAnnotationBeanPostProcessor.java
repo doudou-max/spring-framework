@@ -69,6 +69,14 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * 使用 @Autowired 注入的 bean 对于目标类来说，从代码结构上来讲也就是一个普通的成员变量，
+ * 当 @Autowired 和 spring 一起工作，通过反射为这个成员变量赋值，也就是将其赋为期望的类实例
+ *
+ * 简单描述：
+ * 		使用 @Autowired 注解，对目标类进行成员属性的装配，目标类有了属性后，就可以直接调用方法了
+ *
+ * 使用 @Value 注解同理，将属性填充到定义的变量上
+ *
  * {@link org.springframework.beans.factory.config.BeanPostProcessor BeanPostProcessor}
  * implementation that autowires annotated fields, setter methods, and arbitrary
  * config methods. Such members to be injected are detected through annotations:
@@ -412,7 +420,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 	 * 实现注解给属性赋值：从上面看到了，Bean已经解析拿到了注解的一些元信息，因此此处就调用一些处理器的postProcessPropertyValues方法，
 	 * 来给赋值了
 	 *
-	 * //AutowiredAnnotationBeanPostProcessor:这里就是解析该Bean的Autowired信息,然后给inject进去
+	 * AutowiredAnnotationBeanPostProcessor: 这里就是解析该 Bean 的 Autowired 信息,然后给 inject 进去
 	 *
 	 * @param pvs the property values that the factory is about to apply (never {@code null})
 	 * @param pds the relevant property descriptors for the target bean (with ignored
@@ -473,31 +481,38 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 		return metadata;
 	}
 
+	/**
+	 * 构建被 @Autowired 标注的地方的属性
+	 *
+	 * @param clazz 注解所在的类
+	 * @return 标注的地方相关的属性
+	 */
 	private InjectionMetadata buildAutowiringMetadata(final Class<?> clazz) {
 		if (!AnnotationUtils.isCandidateClass(clazz, this.autowiredAnnotationTypes)) {
 			return InjectionMetadata.EMPTY;
 		}
 
 		List<InjectionMetadata.InjectedElement> elements = new ArrayList<>();
-		Class<?> targetClass = clazz;
+		Class<?> targetClass = clazz;  // 需要处理的目标类
 
 		do {
 			final List<InjectionMetadata.InjectedElement> currElements = new ArrayList<>();
-
+			// 通过反射获取该类所有的字段，并遍历每一个字段，并通过方法findAutowiredAnnotation遍历每一个字段的所用注解，并如果用autowired修饰了，则返回auotowired相关属性
 			ReflectionUtils.doWithLocalFields(targetClass, field -> {
 				MergedAnnotation<?> ann = findAutowiredAnnotation(field);
 				if (ann != null) {
-					if (Modifier.isStatic(field.getModifiers())) {
+					if (Modifier.isStatic(field.getModifiers())) {    // 校验 autowired 注解是否用在了 static 方法上
 						if (logger.isInfoEnabled()) {
 							logger.info("Autowired annotation is not supported on static fields: " + field);
 						}
 						return;
 					}
-					boolean required = determineRequiredStatus(ann);
+					boolean required = determineRequiredStatus(ann);  // 判断是否指定 required
 					currElements.add(new AutowiredFieldElement(field, required));
 				}
 			});
 
+			// 和上面一样的逻辑，但是是通过反射处理类的 method
 			ReflectionUtils.doWithLocalMethods(targetClass, method -> {
 				Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
 				if (!BridgeMethodResolver.isVisibilityBridgeMethodPair(method, bridgedMethod)) {
@@ -523,6 +538,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 				}
 			});
 
+			// 用 @Autowired 修饰的注解可能不止一个，因此都加在 currElements 这个容器里面，一起处理
 			elements.addAll(0, currElements);
 			targetClass = targetClass.getSuperclass();
 		}
