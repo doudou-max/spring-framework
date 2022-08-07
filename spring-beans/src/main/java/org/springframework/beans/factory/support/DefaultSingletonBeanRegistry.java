@@ -16,26 +16,15 @@
 
 package org.springframework.beans.factory.support;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.BeanCreationNotAllowedException;
-import org.springframework.beans.factory.BeanCurrentlyInCreationException;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.*;
 import org.springframework.beans.factory.config.SingletonBeanRegistry;
 import org.springframework.core.SimpleAliasRegistry;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Generic registry for shared bean instances, implementing the
@@ -176,25 +165,40 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * @param allowEarlyReference whether early references should be created or not
 	 * @return the registered singleton object, or {@code null} if none found
 	 */
+	// ① singletonObjects 一级缓存  ② earlySingletonObjects 二级缓存  ③ singletonFactories 三级缓存
 	@Nullable
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
 		// Quick check for existing instance without full singleton lock
-		// 此处是先从已经缓存好了的 singletonObjects 的 Map 中，查看有木有（至于当前已经有哪些了，下面有个截图，相信什么时候进来的都应该有些印象吧）
-		// 前面的步骤要么主动 addSingleton 过，要么显示 getBean() 过，然后就缓存下来
+		// 方法首先从 singletonObjects 中获取对象，当 spring 准备新建一个对象时，singletonObjects 列表中是没有这个对象的，然后进入下一步
 		Object singletonObject = this.singletonObjects.get(beanName);
-		// 若缓存里没有。并且，并且，并且这个 Bean 必须在创建中，才会进来
-		// singletonsCurrentlyInCreation 字段含义：会缓存下来所有的正在创建中的 Bean，如果有 Bean 是循环引用的
-		// 会把这种 Bean 先放进去，这里才会有值
+
+		// 除了判断 null 之外，有一个 isSingletonCurrentlyInCreation 的判断，实际上当 spring 初始化了一个依赖注入的对象，但还没注入对象属性的时候，
+		// spring 会把这个 bean 加入 singletonsCurrentlyInCreation 这个 set 中，也就是把这个对象标记为正在创建的状态，这样，如果 spring 发现要创建的 bean
+		// 在 singletonObjects 中没有，但在 singletonsCurrentlyInCreation 中有，基本上就可以认定为循环依赖了
+		// (在创建 bean 的过程中发现又要创建这个 bean，说明 bean 的某个依赖又依赖了这个 bean，即循环依赖)
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
+
+			// 这里引入 earlySingletonObjects 列表，这是个为了循环依赖而存在的列表，从名字就可以看到，是个预创建的对象列表，刚刚创建的对象在这个列表里一般也没有
 			singletonObject = this.earlySingletonObjects.get(beanName);
+
 			if (singletonObject == null && allowEarlyReference) {
 				synchronized (this.singletonObjects) {
 					// Consistent creation of early reference within full singleton lock
+					// earlySingletonObjects 也没有则从 singletonFactories 中获取，前面说到 singletonFactories 是对象保存的第一步，
+					// 实际上对象初始化后，可能还没有注入对象的依赖，就把对象放入了这个列表
 					singletonObject = this.singletonObjects.get(beanName);
+
 					if (singletonObject == null) {
+
 						singletonObject = this.earlySingletonObjects.get(beanName);
+
 						if (singletonObject == null) {
+
+							// 前面已经说了，已经实例化，但是没有初始化，发送循环依赖的 bean 对象已存在 singletonFactories
 							ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
+
+							// 代码到这里基本已经确定我们要创建的这个对象已经发生循环依赖了，然后 spring 进行了这样的操作，
+							// 把这个对象加入到 earlySingletonObjects 中，然后把该对象从 singletonFactories 中删掉
 							if (singletonFactory != null) {
 								singletonObject = singletonFactory.getObject();
 								this.earlySingletonObjects.put(beanName, singletonObject);

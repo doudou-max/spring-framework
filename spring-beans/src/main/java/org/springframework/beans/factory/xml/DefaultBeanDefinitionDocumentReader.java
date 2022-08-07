@@ -150,7 +150,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 
 		preProcessXml(root);
 		// 这里去解析 aop xml 定义
-		parseBeanDefinitions(root, this.delegate);  // 从这里跳进去解析
+		parseBeanDefinitions(root, this.delegate);
 		postProcessXml(root);
 
 		this.delegate = parent;
