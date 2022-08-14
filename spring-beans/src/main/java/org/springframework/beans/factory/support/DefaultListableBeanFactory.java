@@ -491,6 +491,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 	@Nullable
 	private <T> T resolveBean(ResolvableType requiredType, @Nullable Object[] args, boolean nonUniqueAsNull) {
+		// 这里返回的 namedBean 的 beanInstance 实例已经是一个 JdkDynamicAopProxy，debug 进去看
 		NamedBeanHolder<T> namedBean = resolveNamedBean(requiredType, args, nonUniqueAsNull);
 		if (namedBean != null) {
 			return namedBean.getBeanInstance();
@@ -957,7 +958,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 						}
 					}
 				}
-				// 自定义的 bean 跑来这里
+				// 自定义的 bean 跑来这里，依赖注入是到这里完成的
 				else {
 					getBean(beanName);
 				}
@@ -1259,6 +1260,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 		if (candidateNames.length == 1) {
 			String beanName = candidateNames[0];
+			// 根据前面的步骤可以知道， NamedBeanHolder 返回的实例的 beanInstance 是一个 Proxy 对象
+			// 一个就 getBean() 处理的了
 			return new NamedBeanHolder<>(beanName, (T) getBean(beanName, requiredType.toClass(), args));
 		}
 		else if (candidateNames.length > 1) {

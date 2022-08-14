@@ -102,12 +102,13 @@ public class ProxyFactory extends ProxyCreatorSupport {
 	 * @return the proxy object
 	 */
 	public Object getProxy() {
-		// getProxy() 会返回一个 JdkDynamicAopProxy 或者 CglibAopProxy
-		// 然后拿到代理将其转成接口，通过接口去调用方法
+		// createAopProxy() 方法会 JdkDynamicAopProxy 或者 CglibAopProxy
+		// 然后通过 Proxy 调用 getProxy() 真正生成代理类
 		return createAopProxy().getProxy();
 	}
 
 	/**
+	 * 创建代理，获取代理，返回代理对象 $Proxy
 	 * Create a new proxy according to the settings in this factory.
 	 * <p>Can be called repeatedly. Effect will vary if we've added
 	 * or removed interfaces. Can add and remove interceptors.

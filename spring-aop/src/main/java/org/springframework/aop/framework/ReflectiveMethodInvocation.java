@@ -222,7 +222,7 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 			// been evaluated statically before this object was constructed.
 			// 直接执行此拦截器。说明之前已经匹配好了，只有匹配上的方法才会被拦截进来的
 			// 这里传入 this 就是传入 ReflectiveMethodInvocation，从而形成了一个链条
-			return ((MethodInterceptor) interceptorOrInterceptionAdvice).invoke(this);
+			return ((MethodInterceptor) interceptorOrInterceptionAdvice).invoke(this);		// 这里跳进去调用 TransactionInterceptor
 		}
 	}
 

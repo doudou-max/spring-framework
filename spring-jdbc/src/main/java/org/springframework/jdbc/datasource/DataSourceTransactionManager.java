@@ -129,7 +129,7 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 	 * @see #setDataSource
 	 */
 	public DataSourceTransactionManager() {
-		setNestedTransactionAllowed(true);
+		setNestedTransactionAllowed(true);		// 设置嵌套事物
 	}
 
 	/**

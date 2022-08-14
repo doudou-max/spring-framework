@@ -584,7 +584,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// Invoke factory processors registered as beans in the context.
 				// 实例化并调用所有注册的 beanFactory 后置处理器 (实现接口 BeanFactoryPostProcessor 的 bean，@Configuration 的 ConfigurationClassPostProcessor)
 				// 在 beanFactory 标准初始化之后执行  例如：PropertyPlaceholderConfigurer (处理占位符)
-				invokeBeanFactoryPostProcessors(beanFactory);		// TODO aop 的实现也是通过后置处理器处理
+				// aop 的实现也是通过后置处理器处理
+				// 就是拿到所有的 BeanPostProcessor 的实现类，将这些实现类注入到 spring 的容器中
+				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
 				//
@@ -619,9 +621,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				registerListeners();
 
 				// Instantiate all remaining (non-lazy-init) singletons.
-				// ****** 非常重要，实例化所有剩余的(非懒加载)单例 Bean (也就是我们自己定义的那些 Bean 们)
+				// 非常重要，实例化所有剩余的(非懒加载)单例 Bean (也就是我们自己定义的那些 Bean 们)
 				// 比如 invokeBeanFactoryPostProcessors 方法中根据各种注解解析出来的类，在这个时候都会被初始化  扫描的 @Bean 之类的
 				// 实例化的过程各种 BeanPostProcessor 开始起作用 ~~~
+				// 前面的步骤通过各种方式收集的非懒加载的 bean，这一步开始初始化
 				finishBeanFactoryInitialization(beanFactory);
 
 				// Last step: publish corresponding event.
@@ -818,6 +821,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	}
 
 	/**
+	 * 这一步是获取所有 BeanPostProcessor，并处理这些 BeanPostProcessor，
+	 * 然后里面后置处理器的逻辑 refresh() 中的 finishBeanFactoryInitialization
+	 *
 	 * Instantiate and invoke all registered BeanFactoryPostProcessor beans,
 	 * respecting explicit order if given.
 	 * <p>Must be called before singleton instantiation.
@@ -1265,7 +1271,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 	@Override
 	public <T> T getBean(Class<T> requiredType) throws BeansException {
+		// 这一行代码不重要，跳过
 		assertBeanFactoryActive();
+		// 查看 getBean()
 		return getBeanFactory().getBean(requiredType);
 	}
 

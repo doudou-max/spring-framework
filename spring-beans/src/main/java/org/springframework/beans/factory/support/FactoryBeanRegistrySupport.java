@@ -94,25 +94,32 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 	 * @see org.springframework.beans.factory.FactoryBean#getObject()
 	 */
 	protected Object getObjectFromFactoryBean(FactoryBean<?> factory, String beanName, boolean shouldPostProcess) {
+		// 如果需要在工厂模式下维持单机的话
 		if (factory.isSingleton() && containsSingleton(beanName)) {
 			synchronized (getSingletonMutex()) {
+				// 双重锁机制，尝试从缓存中获取，防止多线程已经创建 bean
 				Object object = this.factoryBeanObjectCache.get(beanName);
 				if (object == null) {
+					// 调用工厂方法创建 bean 实例
 					object = doGetObjectFromFactoryBean(factory, beanName);
 					// Only post-process and store if not put there already during getObject() call above
 					// (e.g. because of circular reference processing triggered by custom getBean calls)
+					// 如果别的线程已经创建，赋值返回，保证单例
 					Object alreadyThere = this.factoryBeanObjectCache.get(beanName);
 					if (alreadyThere != null) {
 						object = alreadyThere;
 					}
 					else {
 						if (shouldPostProcess) {
+							// 该 bean 实例是否已经有别的线程正在尝试创建，但是还没有进行后置处理
 							if (isSingletonCurrentlyInCreation(beanName)) {
 								// Temporarily return non-post-processed object, not storing it yet..
 								return object;
 							}
+							// 后置处理完成前，先加入缓存里面锁起来
 							beforeSingletonCreation(beanName);
 							try {
+								// 触发 BeanPostProcessor，第三方框架可以在此用 AOP 来包装 bean 实例
 								object = postProcessObjectFromFactoryBean(object, beanName);
 							}
 							catch (Throwable ex) {
@@ -120,10 +127,12 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 										"Post-processing of FactoryBean's singleton object failed", ex);
 							}
 							finally {
+								// 创建完成后，从缓存中锁定列表中清楚
 								afterSingletonCreation(beanName);
 							}
 						}
 						if (containsSingleton(beanName)) {
+							// 将其放入缓存，证明单例已经创建完成
 							this.factoryBeanObjectCache.put(beanName, object);
 						}
 					}
@@ -131,6 +140,8 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 				return object;
 			}
 		}
+
+		// 如果不是单例，直接创建返回
 		else {
 			Object object = doGetObjectFromFactoryBean(factory, beanName);
 			if (shouldPostProcess) {

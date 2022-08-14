@@ -321,6 +321,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 
 
 	/**
+	 * // TODO: 2022/8/10  事物处理的真正逻辑
 	 * General delegate for around-advice-based subclasses, delegating to several other template
 	 * methods on this class. Able to handle {@link CallbackPreferringPlatformTransactionManager}
 	 * as well as regular {@link PlatformTransactionManager} implementations and
@@ -370,7 +371,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 				// This is an around advice: Invoke the next interceptor in the chain.
 				// This will normally result in a target object being invoked.
 				// 方法调用
-				retVal = invocation.proceedWithInvocation();
+				retVal = invocation.proceedWithInvocation();		// 执行真正的业务
 			}
 			catch (Throwable ex) {
 				// target invocation exception

@@ -5,6 +5,8 @@ import org.springframework.component.DemoComponent;
 import org.springframework.configuration.DemoConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.support.AbstractRefreshableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.demo.MessageService;
@@ -14,6 +16,8 @@ import org.springframework.model.User;
  * @author: doudou
  * @since: 2021-10-12
  */
+@EnableAspectJAutoProxy
+@ComponentScan("org.springframework")
 public class MainClass {
 
 	public static void main(String[] args) {
@@ -48,6 +52,12 @@ public class MainClass {
 
 //		DemoComponent bean = context.getBean(DemoComponent.class);
 //		System.out.println("---------------" + bean.say());
+
+//		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(MainClass.class);
+//		MessageService messageService = (MessageService)applicationContext.getBean("messageService");
+//		System.out.println(messageService.getMessage());
+
+
 	}
 
 }

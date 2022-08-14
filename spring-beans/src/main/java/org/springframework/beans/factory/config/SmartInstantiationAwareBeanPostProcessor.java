@@ -41,6 +41,9 @@ public interface SmartInstantiationAwareBeanPostProcessor extends InstantiationA
 	 * Predict the type of the bean to be eventually returned from this
 	 * processor's {@link #postProcessBeforeInstantiation} callback.
 	 * <p>The default implementation returns {@code null}.
+	 *
+	 * 用来返回目标对象的最终类型，比如：代理对象 beanClass 获取 proxy type
+	 *
 	 * @param beanClass the raw class of the bean
 	 * @param beanName the name of the bean
 	 * @return the type of the bean, or {@code null} if not predictable
@@ -54,6 +57,10 @@ public interface SmartInstantiationAwareBeanPostProcessor extends InstantiationA
 	/**
 	 * Determine the candidate constructors to use for the given bean.
 	 * <p>The default implementation returns {@code null}.
+	 *
+	 * 提供一个扩展点用来解析获取实例化的构造器，比如未通过 bean 定义构造器以及参数的情况下
+	 * 会根据这个方法返回的构造方法进行实例化
+	 *
 	 * @param beanClass the raw class of the bean (never {@code null})
 	 * @param beanName the name of the bean
 	 * @return the candidate constructors, or {@code null} if none specified
@@ -81,6 +88,10 @@ public interface SmartInstantiationAwareBeanPostProcessor extends InstantiationA
 	 * for the affected bean has been built for a call to this method already,
 	 * it will be exposes as final bean reference by default).
 	 * <p>The default implementation returns the given {@code bean} as-is.
+	 *
+	 * 获取要提前暴露的 bean 的引用，用来支持单例对象的循环应用
+	 * 一般是 bean 自身，如果要代理对象则需要用代理引用的方式
+	 *
 	 * @param bean the raw bean instance
 	 * @param beanName the name of the bean
 	 * @return the object to expose as bean reference

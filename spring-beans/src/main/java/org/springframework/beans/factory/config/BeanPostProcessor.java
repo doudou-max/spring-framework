@@ -56,10 +56,14 @@ import org.springframework.lang.Nullable;
  * @see ConfigurableBeanFactory#addBeanPostProcessor
  * @see BeanFactoryPostProcessor
  */
+//  BeanPostProcessor 的派生类会被 AbstractAutowireCapableBeanFactory 类中的方法处理
+//	ApplicationContextAwareProcessor   有一个应用场景，给类型赋值
 public interface BeanPostProcessor {
 
 	/**
 	 * beanPostProcessor 初始化前置处理器
+	 * 该方法在 bean 实例化完毕(且已经注入完毕)，在 afterPropertiesSet 或自定义 init 方法执行之前
+	 * 该方法主要在 bean 初始化之前调用
 	 *
 	 * Apply this {@code BeanPostProcessor} to the given new bean instance <i>before</i> any bean
 	 * initialization callbacks (like InitializingBean's {@code afterPropertiesSet}

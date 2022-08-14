@@ -38,6 +38,13 @@ import org.springframework.lang.Nullable;
  * {@link InstantiationAwareBeanPostProcessorAdapter} in order to be shielded
  * from extensions to this interface.
  *
+ * 这个类是在 bean 的初始化的时候给 bean 的初始化过程添加一些额外的逻辑处理
+ * bean 是先实例化，在初始化
+ * 该类的三个方法是在 BeanPostProcessor 处理之前先进行处理，往后才处理 BeanPostProcessor
+ *
+ * postProcessBeforeInstantiation 和 postProcessAfterInstantiation 两个方法并不是 BeanPostProcessor 中的方法
+ * Instantiation 和 Initialization 的区别
+ *
  * @author Juergen Hoeller
  * @author Rod Johnson
  * @since 1.2
@@ -65,6 +72,18 @@ public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 	 * @param beanName the name of the bean
 	 * @return the bean object to expose instead of a default instance of the target bean,
 	 * or {@code null} to proceed with default instantiation
+	 *
+	 * 用来在对象实例化前直接返回一个对象(如代理对象)来替代通过内置的实例化流程创建对象
+	 *
+	 * bean 没有通过常规流程创建创建，而是通过这个方法提前创建出来，之后的创建流程就不用在执行
+	 * 然后就直接执行 BeanPostProcessor 的 postProcessBeforeInstantiation 流程，
+	 * 只是创建流程不用执行，但是后置处理器的流程还是要执行
+	 *
+	 * 这个方法处理 org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#populateBean
+	 * (
+	 * 	java.lang.String, org.springframework.beans.factory.support.RootBeanDefinition, org.springframework.beans.BeanWrapper
+	 * )
+	 *
 	 * @throws org.springframework.beans.BeansException in case of errors
 	 * @see #postProcessAfterInstantiation
 	 * @see org.springframework.beans.factory.support.AbstractBeanDefinition#getBeanClass()
@@ -76,6 +95,8 @@ public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 	}
 
 	/**
+	 * 在对象实例化完毕执行 populateBean 之前，如果返回 false，则 spring 不在对对应的 bean 实例进行自动依赖注入
+	 *
 	 * Perform operations after the bean has been instantiated, via a constructor or factory method,
 	 * but before Spring property population (from explicit properties or autowiring) occurs.
 	 * <p>This is the ideal callback for performing custom field injection on the given bean
@@ -108,6 +129,17 @@ public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 	 * PropertyValues instance), or {@code null} which proceeds with the existing properties
 	 * but specifically continues with a call to {@link #postProcessPropertyValues}
 	 * (requiring initialized {@code PropertyDescriptor}s for the current bean class)
+	 *
+	 * 这里是在 spring 处理完默认的成员属性，应用到指定的 bean 之前进行回调，可以用来检查和修改属性
+	 * @Autowired 和 @Resource 等就是根据这个回调来实现最终注入依赖的属性
+	 * AbstractAutowireCapableBeanFactory.populateBean() 方法会调用
+	 *
+	 * org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor#postProcessProperties
+	 * (
+	 * 	org.springframework.beans.PropertyValues, java.lang.Object, java.lang.String
+	 * )
+	 * 该实现类实现了 @Autowired 注解的属性赋值
+	 *
 	 * @throws org.springframework.beans.BeansException in case of errors
 	 * @since 5.1
 	 * @see #postProcessPropertyValues

@@ -110,6 +110,7 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 			throw new AopConfigException("No advisors and no TargetSource specified");
 		}
 		this.advised = config;
+		// 找到代理的接口
 		this.proxiedInterfaces = AopProxyUtils.completeProxiedInterfaces(this.advised, true);
 		findDefinedEqualsAndHashCodeMethods(this.proxiedInterfaces);
 	}
@@ -143,7 +144,7 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 	}
 
 	/**
-	 * 找找看看接口里有没有自己定义 equals 方法和 hashCode 方法，这个很重要，然后标记一下
+	 * 查看接口里有没有自己定义 equals 方法和 hashCode 方法，这个很重要，然后标记一下
 	 * 注意此处用的是 getDeclaredMethods，只会找自己的
 	 *
 	 * Finds any {@link #equals} or {@link #hashCode} method that may be defined

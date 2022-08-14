@@ -131,7 +131,7 @@ public class TransactionInterceptor extends TransactionAspectSupport implements 
 			};
 			return invokeWithinTransaction(invocation.getMethod(), targetClass, callback);
 		}
-		return invokeWithinTransaction(invocation.getMethod(), targetClass, invocation::proceed);
+		return invokeWithinTransaction(invocation.getMethod(), targetClass, invocation::proceed);	// 处理事物
 	}
 
 

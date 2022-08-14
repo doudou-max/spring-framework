@@ -3,6 +3,7 @@ description = "Spring TestContext Framework"
 apply plugin: "kotlin"
 
 dependencies {
+	implementation('mysql:mysql-connector-java:5.1.34')
 	compile(project(":spring-core"))
 	optional(project(":spring-aop"))
 	optional(project(":spring-beans"))
