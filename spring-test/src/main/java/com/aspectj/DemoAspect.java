@@ -1,4 +1,4 @@
-package com.ww;
+package com.aspectj;
 
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -12,12 +12,12 @@ import org.springframework.stereotype.Component;
 //代表是一个切面
 @Aspect
 @Component
-public class WAspect {
+public class DemoAspect {
 
 	/**
 	 * execution表达式，可以百度写法
 	 */
-	@Pointcut("execution(* com.ww.dao.*.*(..))")
+	@Pointcut("execution(* com.aspectj.dao.*.*(..))")
 	public void point(){
 
 	}
@@ -29,5 +29,6 @@ public class WAspect {
 	public void beforeAd(){
 		System.out.println("before-------------");
 	}
+
 }
 

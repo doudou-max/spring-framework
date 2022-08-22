@@ -22,7 +22,7 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 
 /**
- * Extension of {@link CommitForRequiresNewEjbTxDaoTestNGTests} which sets the default
+ * Extension of {@link CommitForRequiresNewEjbTxDemoDaoImplTestNGTests} which sets the default
  * rollback semantics for the {@link TransactionalTestExecutionListener} to
  * {@code true}. The transaction managed by the TestContext framework will be
  * rolled back after each test method. Consequently, any work performed in
@@ -38,7 +38,7 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
  */
 @Test(suiteName = "Rollback for REQUIRES_NEW")
 @Rollback
-public class RollbackForRequiresNewEjbTxDaoTestNGTests extends CommitForRequiresNewEjbTxDaoTestNGTests {
+public class RollbackForRequiresNewEjbTxDemoDaoImplTestNGTests extends CommitForRequiresNewEjbTxDemoDaoImplTestNGTests {
 
 	/* test methods in superclass */
 

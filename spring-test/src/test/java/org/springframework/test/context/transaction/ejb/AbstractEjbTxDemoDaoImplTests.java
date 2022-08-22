@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,32 +14,38 @@
  * limitations under the License.
  */
 
-package org.springframework.test.context.testng.transaction.ejb;
+package org.springframework.test.context.transaction.ejb;
 
 import javax.ejb.EJB;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.testng.AbstractTransactionalTestNGSpringContextTests;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.transaction.ejb.dao.TestEntityDao;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Abstract base class for all TestNG-based tests involving EJB transaction
- * support in the TestContext framework.
+ * Abstract base class for all tests involving EJB transaction support in the
+ * TestContext framework.
  *
  * @author Sam Brannen
  * @author Xavier Detant
  * @since 4.0.1
  */
+@SpringJUnitConfig
+@Transactional
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public abstract class AbstractEjbTxDaoTestNGTests extends AbstractTransactionalTestNGSpringContextTests {
+@TestMethodOrder(MethodOrderer.MethodName.class)
+abstract class AbstractEjbTxDemoDaoImplTests {
 
 	protected static final String TEST_NAME = "test-name";
 
@@ -51,13 +57,13 @@ public abstract class AbstractEjbTxDaoTestNGTests extends AbstractTransactionalT
 
 
 	@Test
-	public void test1InitialState() {
+	void test1InitialState() {
 		int count = dao.getCount(TEST_NAME);
 		assertThat(count).as("New TestEntity should have count=0.").isEqualTo(0);
 	}
 
-	@Test(dependsOnMethods = "test1InitialState")
-	public void test2IncrementCount1() {
+	@Test
+	void test2IncrementCount1() {
 		int count = dao.incrementCount(TEST_NAME);
 		assertThat(count).as("Expected count=1 after first increment.").isEqualTo(1);
 	}
@@ -67,8 +73,8 @@ public abstract class AbstractEjbTxDaoTestNGTests extends AbstractTransactionalT
 	 * for {@link #test2IncrementCount1()} was committed. Therefore, it is
 	 * expected that the previous increment has been persisted in the database.
 	 */
-	@Test(dependsOnMethods = "test2IncrementCount1")
-	public void test3IncrementCount2() {
+	@Test
+	void test3IncrementCount2() {
 		int count = dao.getCount(TEST_NAME);
 		assertThat(count).as("Expected count=1 after test2IncrementCount1().").isEqualTo(1);
 
@@ -76,8 +82,8 @@ public abstract class AbstractEjbTxDaoTestNGTests extends AbstractTransactionalT
 		assertThat(count).as("Expected count=2 now.").isEqualTo(2);
 	}
 
-	@AfterMethod(alwaysRun = true)
-	public void synchronizePersistenceContext() {
+	@AfterEach
+	void synchronizePersistenceContext() {
 		em.flush();
 	}
 

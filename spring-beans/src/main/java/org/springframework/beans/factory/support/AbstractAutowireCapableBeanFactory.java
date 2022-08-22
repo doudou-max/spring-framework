@@ -439,7 +439,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			throws BeansException {
 
 		Object result = existingBean;
-		for (BeanPostProcessor processor : getBeanPostProcessors()) {
+		List<BeanPostProcessor> beanPostProcessors = getBeanPostProcessors();
+		for (BeanPostProcessor processor : beanPostProcessors) {
 			Object current = processor.postProcessBeforeInitialization(result, beanName);
 			if (current == null) {
 				return result;
@@ -469,9 +470,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// 经过多个处理器处理后的 bean
 		// 比较经典的应用处理： AbstractAutoProxyCreator
-		for (BeanPostProcessor processor : getBeanPostProcessors()) {
 
-			// 找到 AbstractAutoProxyCreator 的 postProcessAfterInitialization() 方法的实现，就是代理的创建
+		// 拿到所有后置处理器
+		List<BeanPostProcessor> beanPostProcessors = getBeanPostProcessors();
+
+		for (BeanPostProcessor processor : beanPostProcessors) {
+
+			// 处理所有后置处理器的后置处理
 			Object current = processor.postProcessAfterInitialization(result, beanName);
 
 			if (current == null) {
@@ -1466,7 +1471,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// state of the bean before properties are set. This can be used, for example,
 		// to support styles of field injection.
 
-		// 给 InstantiationAwareBeanPostProcessors 最后一次机会在属性注入前修改 Bean 的属性值
+		// 给 InstantiationAwareBeanPostProcessor 最后一次机会在属性注入前修改 Bean 的属性值
 		// 具体通过调用 postProcessAfterInstantiation 方法，如果调用返回 false，表示不必继续进行依赖注入，直接返回
 		// 这里就是处理 org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor.postProcessBeforeInstantiation 的方法
 		if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
@@ -1515,7 +1520,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				pvs = mbd.getPropertyValues();
 			}
 			// 过滤出所有需要进行依赖检查的属性编辑器
-			// 在这个节点上：调用了InstantiationAwareBeanPostProcessor#postProcessPropertyValues方法，
+			// 在这个节点上：调用了 InstantiationAwareBeanPostProcessor#postProcessPropertyValues方法，
 			// 若返回null，整个populateBean方法就结束了=============
 			for (InstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().instantiationAware) {
 				// 调用 org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor.postProcessProperties

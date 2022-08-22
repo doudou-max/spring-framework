@@ -63,10 +63,10 @@ final class PostProcessorRegistrationDelegate {
 			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
 
 			// 遍历所有的后置处理器，并进行处理
+			// ConfigurationClassPostProcessor 是 BeanFactoryPostProcessor(BeanDefinitionRegistryPostProcessor) 的唯一实现
 			for (BeanFactoryPostProcessor postProcessor : beanFactoryPostProcessors) {
 				if (postProcessor instanceof BeanDefinitionRegistryPostProcessor) {
-					BeanDefinitionRegistryPostProcessor registryProcessor =
-							(BeanDefinitionRegistryPostProcessor) postProcessor;
+					BeanDefinitionRegistryPostProcessor registryProcessor = (BeanDefinitionRegistryPostProcessor) postProcessor;
 					registryProcessor.postProcessBeanDefinitionRegistry(registry);
 					registryProcessors.add(registryProcessor);
 				} else {

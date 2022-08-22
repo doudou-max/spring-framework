@@ -24,7 +24,7 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Extension of {@link CommitForRequiredEjbTxDaoTestNGTests} which sets the default
+ * Extension of {@link CommitForRequiredEjbTxDemoDaoImplTestNGTests} which sets the default
  * rollback semantics for the {@link TransactionalTestExecutionListener} to
  * {@code true}. The transaction managed by the TestContext framework will be
  * rolled back after each test method. Consequently, any work performed in
@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @Test(suiteName = "Rollback for REQUIRED")
 @Rollback
-public class RollbackForRequiredEjbTxDaoTestNGTests extends CommitForRequiredEjbTxDaoTestNGTests {
+public class RollbackForRequiredEjbTxDemoDaoImplTestNGTests extends CommitForRequiredEjbTxDemoDaoImplTestNGTests {
 
 	/**
 	 * Overrides parent implementation in order to change expectations to align with

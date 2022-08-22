@@ -15,7 +15,7 @@ public class AccountDao {
 	private JdbcTemplate jdbcTemplate;
 
 	public void save() {
-		jdbcTemplate.execute("INSERT INTO `mp`.`user`(`id`, `name`, `age`, `email`, `manager_id`, `create_time`, `update_time`, `version`, `deleted`) VALUES (666666, 'doudou', 40, 'boss@baomidou.com', NULL, 20190111142020, NULL, 1, 0);");
+		jdbcTemplate.execute("INSERT INTO `mp`.`user`(`id`, `name`, `age`, `email`, `manager_id`, `create_time`, `update_time`, `version`, `deleted`) VALUES (777777, 'doudou', 40, 'boss@baomidou.com', NULL, 20190111142020, NULL, 1, 0);");
 	}
 
 }

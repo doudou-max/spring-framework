@@ -1,10 +1,9 @@
-package com.ww.dao;
+package com.aspectj.dao;
 
 /**
  * @author: doudou
  * @since: 2022-08-07
  */
-public interface Dao {
-
+public interface DemoDao {
 	void query();
 }

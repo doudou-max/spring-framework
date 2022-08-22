@@ -272,6 +272,9 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	}
 
 	/**
+	 * 为 @Configuration 注解描述的配置类创建一个CGLIB代理对象，然后由代理对象调用 @Bean 注解描述的方法，创建和初始化 Bean
+	 * 但 @Component注解描述类时，系统底层并不会为此类创建代理对象，只是创建当前类的对象，然后调用@Bean注解描述的方法，创建和初始化Bean
+	 *
 	 * Prepare the Configuration classes for servicing bean requests at runtime
 	 * by replacing them with CGLIB-enhanced subclasses.
 	 */

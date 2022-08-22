@@ -19,20 +19,20 @@ package org.springframework.test.context.transaction.ejb;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
-import org.springframework.test.context.transaction.ejb.dao.RequiresNewEjbTxTestEntityDao;
+import org.springframework.test.context.transaction.ejb.dao.RequiredEjbTxTestEntityDao;
 
 /**
- * Concrete subclass of {@link AbstractEjbTxDaoTests} which uses the
- * {@link RequiresNewEjbTxTestEntityDao} and sets the default rollback semantics
+ * Concrete subclass of {@link AbstractEjbTxDemoDaoImplTests} which uses the
+ * {@link RequiredEjbTxTestEntityDao} and sets the default rollback semantics
  * for the {@link TransactionalTestExecutionListener} to {@code false} (i.e.,
  * <em>commit</em>).
  *
  * @author Sam Brannen
  * @since 4.0.1
  */
-@ContextConfiguration("requires-new-tx-config.xml")
+@ContextConfiguration("required-tx-config.xml")
 @Commit
-class CommitForRequiresNewEjbTxDaoTests extends AbstractEjbTxDaoTests {
+class CommitForRequiredEjbTxDemoDaoImplTests extends AbstractEjbTxDemoDaoImplTests {
 
 	/* test methods in superclass */
 

@@ -120,6 +120,7 @@ public abstract class AopConfigUtils {
 
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 
+		// 注册器包含用户自定义的自动代理注册器
 		if (registry.containsBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME)) {
 			BeanDefinition apcDefinition = registry.getBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME);
 			if (!cls.getName().equals(apcDefinition.getBeanClassName())) {
@@ -132,6 +133,7 @@ public abstract class AopConfigUtils {
 			return null;
 		}
 
+		// 向 spring 容器中注入框架自动代理对象
 		RootBeanDefinition beanDefinition = new RootBeanDefinition(cls);
 		beanDefinition.setSource(source);
 		beanDefinition.getPropertyValues().add("order", Ordered.HIGHEST_PRECEDENCE);

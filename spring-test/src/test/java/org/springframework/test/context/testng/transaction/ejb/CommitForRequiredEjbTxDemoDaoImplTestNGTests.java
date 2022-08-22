@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.test.context.transaction.ejb;
+package org.springframework.test.context.testng.transaction.ejb;
+
+import org.testng.annotations.Test;
 
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.ContextConfiguration;
@@ -22,7 +24,7 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
 import org.springframework.test.context.transaction.ejb.dao.RequiredEjbTxTestEntityDao;
 
 /**
- * Concrete subclass of {@link AbstractEjbTxDaoTests} which uses the
+ * Concrete subclass of {@link AbstractEjbTxDemoDaoImplTestNGTests} which uses the
  * {@link RequiredEjbTxTestEntityDao} and sets the default rollback semantics
  * for the {@link TransactionalTestExecutionListener} to {@code false} (i.e.,
  * <em>commit</em>).
@@ -30,9 +32,10 @@ import org.springframework.test.context.transaction.ejb.dao.RequiredEjbTxTestEnt
  * @author Sam Brannen
  * @since 4.0.1
  */
-@ContextConfiguration("required-tx-config.xml")
+@Test(suiteName = "Commit for REQUIRED")
+@ContextConfiguration("/org/springframework/test/context/transaction/ejb/required-tx-config.xml")
 @Commit
-class CommitForRequiredEjbTxDaoTests extends AbstractEjbTxDaoTests {
+public class CommitForRequiredEjbTxDemoDaoImplTestNGTests extends AbstractEjbTxDemoDaoImplTestNGTests {
 
 	/* test methods in superclass */
 

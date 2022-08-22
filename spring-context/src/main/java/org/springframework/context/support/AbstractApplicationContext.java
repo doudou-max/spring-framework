@@ -16,21 +16,8 @@
 
 package org.springframework.context.support;
 
-import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.CachedIntrospectionResults;
 import org.springframework.beans.factory.BeanFactory;
@@ -40,29 +27,8 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.support.ResourceEditorRegistrar;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.EmbeddedValueResolverAware;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.context.HierarchicalMessageSource;
-import org.springframework.context.LifecycleProcessor;
-import org.springframework.context.MessageSource;
-import org.springframework.context.MessageSourceAware;
-import org.springframework.context.MessageSourceResolvable;
-import org.springframework.context.NoSuchMessageException;
-import org.springframework.context.PayloadApplicationEvent;
-import org.springframework.context.ResourceLoaderAware;
-import org.springframework.context.event.ApplicationEventMulticaster;
-import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.ContextStartedEvent;
-import org.springframework.context.event.ContextStoppedEvent;
-import org.springframework.context.event.SimpleApplicationEventMulticaster;
+import org.springframework.context.*;
+import org.springframework.context.event.*;
 import org.springframework.context.expression.StandardBeanExpressionResolver;
 import org.springframework.context.weaving.LoadTimeWeaverAware;
 import org.springframework.context.weaving.LoadTimeWeaverAwareProcessor;
@@ -85,6 +51,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
+
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Abstract implementation of the {@link org.springframework.context.ApplicationContext}
@@ -582,22 +553,27 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				StartupStep beanPostProcess = this.applicationStartup.start("spring.context.beans.post-process");  // 标记开始处理后置处理器
 
 				// Invoke factory processors registered as beans in the context.
-				// 实例化并调用所有注册的 beanFactory 后置处理器 (实现接口 BeanFactoryPostProcessor 的 bean，@Configuration 的 ConfigurationClassPostProcessor)
-				// 在 beanFactory 标准初始化之后执行  例如：PropertyPlaceholderConfigurer (处理占位符)
-				// aop 的实现也是通过后置处理器处理
-				// 就是拿到所有的 BeanPostProcessor 的实现类，将这些实现类注入到 spring 的容器中
+				// 扫描、加载、注册 bean 对象到 spring 容器中 (但是还没有实例化和初始化，下面的 finishBeanFactoryInitialization() 才进行)
+				// 注册所有实现 BeanFactoryPostProcessor 的后置处理器，并调用所有的 BeanFactoryPostProcessor 的实现类的方法
+				// (实现接口 BeanFactoryPostProcessor 的 bean，@Configuration 的 ConfigurationClassPostProcessor)
+				// 这里是 BeanFactoryPostProcessor，而不是 BeanPostProcessor
+				// 下面的 finishBeanFactoryInitialization() 方法才是处理 Bean 的后置处理器
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
-				//
-				// ****** 实例化和注册 beanFactory 中扩展了 BeanPostProcessor 的 bean。
-				//
+
+				// 实例化和注册 beanFactory 中扩展 BeanPostProcessor 的 bean，各种 BeanPostProcessor 作为 bean 注册到容器中
+
 				// 例如：
 				// 	  AutowiredAnnotationBeanPostProcessor (处理被 @Autowired 注解修饰的 bean 并注入)
 				// 	  RequiredAnnotationBeanPostProcessor (处理被 @Required 注解修饰的方法)
-				// 	  CommonAnnotationBeanPostProcessor (处理 @PreDestroy、@PostConstruct、@Resource 等多个注解的作用)等。
+				// 	  CommonAnnotationBeanPostProcessor (处理 @PreDestroy、@PostConstruct、@Resource 等多个注解的作用)等
+				//    AnnotationAwareAspectJAutoProxyCreator (处理 @Aspect 注解修饰的 bea 并注入)
+				//    BeanValidationPostProcessor (处理 @Validation 注解修饰的 bean)
 				registerBeanPostProcessors(beanFactory);
-				beanPostProcess.end();		// 标记结束后置处理器
+
+				// 标记结束后置处理器
+				beanPostProcess.end();
 
 				// Initialize message source for this context.
 				// 初始化国际化工具类 MessageSource
@@ -621,10 +597,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				registerListeners();
 
 				// Instantiate all remaining (non-lazy-init) singletons.
-				// 非常重要，实例化所有剩余的(非懒加载)单例 Bean (也就是我们自己定义的那些 Bean 们)
-				// 比如 invokeBeanFactoryPostProcessors 方法中根据各种注解解析出来的类，在这个时候都会被初始化  扫描的 @Bean 之类的
-				// 实例化的过程各种 BeanPostProcessor 开始起作用 ~~~
-				// 前面的步骤通过各种方式收集的非懒加载的 bean，这一步开始初始化
+				// 非常重要，实例化所有剩余的(非懒加载)单例 bean，就是那些自定义的 bean
+				// 比如 invokeBeanFactoryPostProcessors() 方法中根据各种注解解析出来的类，在这个时候都会被初始化
+				// 实例化的过程各种 BeanPostProcessor 开始起作用
+				// 前面的步骤通过各种方式收集的非懒加载的 bean，这一步开始初始化(Initialization)
 				finishBeanFactoryInitialization(beanFactory);
 
 				// Last step: publish corresponding event.

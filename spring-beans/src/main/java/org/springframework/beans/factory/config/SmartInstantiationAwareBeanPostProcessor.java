@@ -91,6 +91,7 @@ public interface SmartInstantiationAwareBeanPostProcessor extends InstantiationA
 	 *
 	 * 获取要提前暴露的 bean 的引用，用来支持单例对象的循环应用
 	 * 一般是 bean 自身，如果要代理对象则需要用代理引用的方式
+	 * AbstractAutowireCapableBeanFactory 获取二级缓存信息，放入三级缓存中
 	 *
 	 * @param bean the raw bean instance
 	 * @param beanName the name of the bean

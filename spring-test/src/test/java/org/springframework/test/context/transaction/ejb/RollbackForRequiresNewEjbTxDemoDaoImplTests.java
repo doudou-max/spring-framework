@@ -20,7 +20,7 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 
 /**
- * Extension of {@link CommitForRequiresNewEjbTxDaoTests} which sets the default
+ * Extension of {@link CommitForRequiresNewEjbTxDemoDaoImplTests} which sets the default
  * rollback semantics for the {@link TransactionalTestExecutionListener} to
  * {@code true}. The transaction managed by the TestContext framework will be
  * rolled back after each test method. Consequently, any work performed in
@@ -35,7 +35,7 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
  * @since 4.0.1
  */
 @Rollback
-class RollbackForRequiresNewEjbTxDaoTests extends CommitForRequiresNewEjbTxDaoTests {
+class RollbackForRequiresNewEjbTxDemoDaoImplTests extends CommitForRequiresNewEjbTxDemoDaoImplTests {
 
 	/* test methods in superclass */
 

@@ -24,7 +24,7 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
 import org.springframework.test.context.transaction.ejb.dao.RequiresNewEjbTxTestEntityDao;
 
 /**
- * Concrete subclass of {@link AbstractEjbTxDaoTestNGTests} which uses the
+ * Concrete subclass of {@link AbstractEjbTxDemoDaoImplTestNGTests} which uses the
  * {@link RequiresNewEjbTxTestEntityDao} and sets the default rollback semantics
  * for the {@link TransactionalTestExecutionListener} to {@code false} (i.e.,
  * <em>commit</em>).
@@ -35,7 +35,7 @@ import org.springframework.test.context.transaction.ejb.dao.RequiresNewEjbTxTest
 @Test(suiteName = "Commit for REQUIRES_NEW")
 @ContextConfiguration("/org/springframework/test/context/transaction/ejb/requires-new-tx-config.xml")
 @Commit
-public class CommitForRequiresNewEjbTxDaoTestNGTests extends AbstractEjbTxDaoTestNGTests {
+public class CommitForRequiresNewEjbTxDemoDaoImplTestNGTests extends AbstractEjbTxDemoDaoImplTestNGTests {
 
 	/* test methods in superclass */
 

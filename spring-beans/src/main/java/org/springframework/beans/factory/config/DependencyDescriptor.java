@@ -262,6 +262,14 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 	 * algorithm for this dependency, to a bean instance from the given factory.
 	 * <p>The default implementation calls {@link BeanFactory#getBean(String)}.
 	 * Subclasses may provide additional arguments or other customizations.
+	 *
+	 * // TODO: 2022/8/14 循环依赖关键点
+	 * 方法名：解决候选人
+	 * 	解决循环依赖的关键点：
+	 * 		getBean("aService")
+	 * 		填充 bService，发生 bService 不存在
+	 * 		调用 getBean("bService")，填充 aService，aService 已经在三级缓存中
+	 * 		bService 已经创建完成，
 	 * @param beanName the bean name, as a candidate result for this dependency
 	 * @param requiredType the expected type of the bean (as an assertion)
 	 * @param beanFactory the associated factory
