@@ -75,7 +75,9 @@ import org.springframework.util.ClassUtils;
  * 一个 Class 类被标注了这个注解，就认为这个类就是一个配置类，在这个类里面就可以写相应的其它配置了，比如 @Bean 等等
  *
  * 可以看出它是一个 BeanFactoryPostProcessor，并且它是个功能更强大些的 BeanDefinitionRegistryPostProcessor，
- * 有能力去处理一些 Bean 的定义信息 ~~~
+ * 有能力去处理一些 Bean 的定义信息
+ *
+ * 需要知道的是：ConfigurationClassPostProcessor(这个类) 是 spring 内部对 BeanDefinitionRegistryPostProcessor(BeanFactoryPostProcessor) 接口的唯一实现
  *
  * {@link BeanFactoryPostProcessor} used for bootstrapping processing of
  * {@link Configuration @Configuration} classes.
@@ -96,10 +98,6 @@ import org.springframework.util.ClassUtils;
  */
 public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPostProcessor,
 		PriorityOrdered, ResourceLoaderAware, ApplicationStartupAware, BeanClassLoaderAware, EnvironmentAware {
-
-	/*
-	 * 需要知道的是，ConfigurationClassPostProcessor(这个类) 是 Spring 内部对 BeanDefinitionRegistryPostProcessor 接口 的唯一实现。
-	 */
 
 	/**
 	 * A {@code BeanNameGenerator} using fully qualified class names as default bean names.

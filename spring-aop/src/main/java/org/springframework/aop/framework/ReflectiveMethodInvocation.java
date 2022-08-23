@@ -16,19 +16,18 @@
 
 package org.springframework.aop.framework;
 
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.aop.ProxyMethodInvocation;
+import org.springframework.aop.support.AopUtils;
+import org.springframework.core.BridgeMethodResolver;
+import org.springframework.lang.Nullable;
+
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
-
-import org.springframework.aop.ProxyMethodInvocation;
-import org.springframework.aop.support.AopUtils;
-import org.springframework.core.BridgeMethodResolver;
-import org.springframework.lang.Nullable;
 
 /**
  * spring 给我们提供的唯一(其实算唯二吧)的实现类，它执行着拦截的核心逻辑，会让所有的通知器都执行
@@ -181,8 +180,9 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 
 
 	/**
-	 * 这里就是核心了，要执行方法、执行通知、都是在此处搞定的
-	 * 这里面运用 递归调用 的方式，非常具有技巧性
+	 * 代理对象调用方法真正处理的地方，ReflectiveMethodInvocation.proceed()
+	 * 这里可以拿到 aop 的 advice，通过 advice 去调用各种的 intercept，包括实现事物的 TransactionInterceptor
+	 * 这里就是核心了，要执行方法、执行通知、都是在此处搞定的，这里面运用 [ 递归调用 ] 的方式，非常具有技巧性
 	 */
 	@Override
 	@Nullable

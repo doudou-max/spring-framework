@@ -14,9 +14,9 @@ public class GenerateMain {
 
 	public static void main(String[] args) throws IOException {
 
-		// JdkDynamic 生成代理的 .class 文件，生成的类通过反编译，可以看到已经基础 extends Proxy
-		/*byte[] bytes = ProxyGenerator.generateProxyClass("$Proxy", new Class[]{DemoDao.class});
-		FileOutputStream fileOutputStream = new FileOutputStream("/Users/apple/Desktop/sql/HomeService.class");
+		/*// JdkDynamic 生成代理的 .class 文件，生成的类通过反编译，可以看到已经基础 extends Proxy
+		byte[] bytes = ProxyGenerator.generateProxyClass("$Proxy", new Class[]{DemoDao.class});
+		FileOutputStream fileOutputStream = new FileOutputStream("/Users/apple/Desktop/sql/DemoDao.class");
 		fileOutputStream.write(bytes);
 		fileOutputStream.flush();
 		fileOutputStream.close();*/

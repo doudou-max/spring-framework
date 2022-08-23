@@ -196,7 +196,9 @@ class CglibAopProxy implements AopProxy, Serializable {
 			enhancer.setNamingPolicy(SpringNamingPolicy.INSTANCE);
 			enhancer.setStrategy(new ClassLoaderAwareGeneratorStrategy(classLoader));
 
-			Callback[] callbacks = getCallbacks(rootClass);		// 事物看这里的值，数组中有一个值：DynamicAdvisedInterceptor，查看该类的 intercept() 方法
+			// 这里生成一些回调对象给代理对象做回调，例如：DynamicAdvisedInterceptor
+			// 生成这个对象之后，事物的方法调用的时候就会执行到 DynamicAdvisedInterceptor.intercept() 方法，进行调用 MethodInvocation
+			Callback[] callbacks = getCallbacks(rootClass);
 			Class<?>[] types = new Class<?>[callbacks.length];
 			for (int x = 0; x < types.length; x++) {
 				types[x] = callbacks[x].getClass();
@@ -291,7 +293,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 		boolean isFrozen = this.advised.isFrozen();
 		boolean isStatic = this.advised.getTargetSource().isStatic();
 
-		// Choose an "aop" interceptor (used for AOP calls).
+		// Choose an "aop" interceptor (used for AOP calls). 实例化一个拦截器用于 aop 代理对象的生成
 		Callback aopInterceptor = new DynamicAdvisedInterceptor(this.advised);
 
 		// Choose a "straight to target" interceptor. (used for calls that are
@@ -674,7 +676,21 @@ class CglibAopProxy implements AopProxy, Serializable {
 			this.advised = advised;
 		}
 
-		// TODO: 2022/8/10 拦截器的拦截方法，事物会经过这里
+		/**
+		 * cglib aop 的拦截方法，生成字节码文件的并不会执行到这里，而通过生成的代理文件进行方法调用的时候，会先到这里进行方法调用
+		 * 这里如果是事物的拦截器的话，会有一个 BeanFactoryTransactionAttributeSourceAdvisor
+		 * 事物的增强对象生成好之后，进行调用执行的时候，cglib 代理也是先调用这个方法 intercept()
+		 *
+		 * cglib 代理是通过 CglibMethodInvocation(继承ReflectiveMethodInvocation) 类型，调用 proceed()，
+		 * 说白了是 ReflectiveMethodInvocation.proceed()，这个和 jdk 动态代理一样
+		 *
+		 * @param proxy
+		 * @param method
+		 * @param args
+		 * @param methodProxy
+		 * @return
+		 * @throws Throwable
+		 */
 		@Override
 		@Nullable
 		public Object intercept(Object proxy, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
@@ -693,7 +709,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 				// Get as late as possible to minimize the time we "own" the target, in case it comes from a pool...
 				target = targetSource.getTarget();
 				Class<?> targetClass = (target != null ? target.getClass() : null);
-				// 一样的，也是拿到和这个方法匹配的 所有的增强器、通知们 和JDK Proxy中是一样的
+				// 一样的，也是拿到和这个方法匹配的 所有的增强器、通知们 和JDK Proxy中是一样的， BeanFactoryTransactionAttributeSourceAdvisor 拿到 TransactionInterceptor
 				List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);
 				Object retVal;
 				// Check whether we only have one InvokerInterceptor: that is,

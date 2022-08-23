@@ -541,7 +541,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// 配置标准的 beanFactory，设置 ClassLoader，设置 SpEL 表达式解析器等
-			// 配置工厂的标准上下文特征
+			// 配置工厂的标准上下文特征， DefaultListableBeanFactory
 			// Prepare the bean factory for use in this context.
 			prepareBeanFactory(beanFactory);
 
@@ -561,9 +561,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
-
+				//
 				// 实例化和注册 beanFactory 中扩展 BeanPostProcessor 的 bean，各种 BeanPostProcessor 作为 bean 注册到容器中
-
+				//
 				// 例如：
 				// 	  AutowiredAnnotationBeanPostProcessor (处理被 @Autowired 注解修饰的 bean 并注入)
 				// 	  RequiredAnnotationBeanPostProcessor (处理被 @Required 注解修饰的方法)

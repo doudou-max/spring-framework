@@ -56,7 +56,7 @@ import javax.annotation.Nullable;
 public interface MethodInterceptor extends Interceptor {
 
 	/**
-	 * 可议在此方法里，在方法执行之前、之后做对应的处理。
+	 * 可以在此方法里，在方法执行之前、之后做对应的处理。
 	 * 需要执行的时候，调用 invocation.proceed() 方法即可
 	 *
 	 * Implement this method to perform extra treatments before and

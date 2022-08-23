@@ -181,13 +181,19 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 	 *
 	 * 细节：
 	 * 	除了实现类里自己写的方法(接口上没有的)，其余方法统一都会进入代理得 invoke() 方法里面；
-	 * 	只是 invoke() 上做了很多特殊处理，比如 DecoratingProxy 和 Advised 等等的方法，都是直接执行了。
+	 * 	只是 invoke() 上做了很多特殊处理，比如 DecoratingProxy 和 Advised 等等的方法，都是直接执行了
 	 *
 	 * 	object 的方法中，toString() 方法会被增强 (至于为何，我至今还没找到原因，麻烦的知道的给个答案)
 	 * 	因为我始终不知道 AdvisedSupport#methodCache 这个字段事什么把 toString() 方法缓存上的，打断点都没跟踪上
 	 *
 	 * 	生成出来的代理对象，spring 默认都给你实现了接口：SpringProxy、DecoratingProxy、Advised
-	 *  说明：CGLIB 代理出来的对象没有实现接口 DecoratingProxy。
+	 *  说明：CGLIB 代理出来的对象没有实现接口 DecoratingProxy
+	 *
+	 * ***：
+	 * 	 jdk dynamic aop 对象生成的时候，并不需要调用到这个方法，而是通过生成的代理对象调用方法的时候，会通过 super.invoke() 方法调用到这里，
+	 *   类似于事物，也是先调用到这个方法，事物的实现也是有调用这个方法开始
+	 *
+	 *   jdk 动态代理是通过 ReflectiveMethodInvocation 类型调用 proceed() 方法，这个和 cglib 代理一样
 	 *
 	 * Implementation of {@code InvocationHandler.invoke}.
 	 * <p>Callers will see exactly the exception thrown by the target,

@@ -453,7 +453,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			}
 		}
 
-		Advisor[] advisors = buildAdvisors(beanName, specificInterceptors);
+		Advisor[] advisors = buildAdvisors(beanName, specificInterceptors);	 //  获取 aop 的通知者，就是 BeanFactoryTransactionAttributeSourceAdvisor
 		proxyFactory.addAdvisors(advisors);
 		proxyFactory.setTargetSource(targetSource);
 		customizeProxyFactory(proxyFactory);

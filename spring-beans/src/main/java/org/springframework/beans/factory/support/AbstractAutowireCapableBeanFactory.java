@@ -452,7 +452,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 	/**
 	 * BeanPostProcessor 的实现类统一在这个方法中处理
-	 * 该方法处理的是后置处理器的前置处理方法
+	 * 该方法处理的是后置处理器的后置处理方法
 	 *
 	 * @param existingBean the existing bean instance
 	 * @param beanName the name of the bean, to be passed to it if necessary
@@ -579,7 +579,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			// 下面有解释：BeanPostProcessor和InstantiationAwareBeanPostProcessor的区别，可以分清楚他们执行的时机
 			// 处理 InstantiationAwareBeanPostProcessor 接口中的两个方法
 			// InstantiationAwareBeanPostProcessor 就是会先执行自己定义的方法，有执行到自己的方法返回 bean，
-			// 然后调用 BeanPostProcessor 方法在执行，之后欧就返回
+			// 然后调用 BeanPostProcessor 方法在执行，之后就返回
 			// aop 的应用
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
 			// 如果不为空，说明提前生成了实例，直接返回，就不用调下面的 doCreateBean() 方法
@@ -678,9 +678,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Initialize the bean instance.
 		Object exposedObject = bean;
 		try {
-			// 填充 bean 这个方法会执行
-			// 	   -> org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor.postProcessBeforeInstantiation()
-			// 经过这里就不再需要 doCreateBean 的逻辑再创建 bean
+			// 填充 bean 这个方法会执行 -> InstantiationAwareBeanPostProcessor.postProcessBeforeInstantiation()
+			// Instantiation：初始化  Initialization：实例化   先初始化再实例化
+			//
 			populateBean(beanName, mbd, instanceWrapper);	// 循环调用 getBean() 实例化属性对象，拿到对象之后填充属性
 			// 初始化 bean，处理 BeanPostProcessor 实现类的逻辑
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
@@ -1477,7 +1477,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
 			for (InstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().instantiationAware) {
 				// postProcessAfterInstantiation 这个方法返回true，后面的处理器才会继续执行，单反返回false，后面的就不会再执行了
-				// 并且continueWithPropertyPopulation 打上标记表示false，也就是说后面的属性复制就不会再执行了
+				// 并且continueWithPropertyPopulation 打上标记表示false，也就是说后面的属性复制就不会再执行了 InfrastructureAdvisorAutoProxyCreator -> AbstractAutoProxyCreator.postProcessAfterInitialization
 				if (!bp.postProcessAfterInstantiation(bw.getWrappedInstance(), beanName)) {
 					return;
 				}

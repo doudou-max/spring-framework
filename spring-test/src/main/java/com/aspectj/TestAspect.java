@@ -25,6 +25,7 @@ public class TestAspect {
 
 		// 这一步只是获取bean对象而已，并不是 getBean 去创建对象
 		DemoDao dao = configApplicationContext.getBean(DemoDao.class);
+		//DemoDaoImpl dao = configApplicationContext.getBean(DemoDaoImpl.class);
 
 		dao.query();
 	}
