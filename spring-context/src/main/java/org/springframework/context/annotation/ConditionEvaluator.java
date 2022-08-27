@@ -72,39 +72,51 @@ class ConditionEvaluator {
 	}
 
 	/**
+	 * 这个方法主要是如果是解析阶段则跳过，如果是注册阶段则不跳过
 	 * Determine if an item should be skipped based on {@code @Conditional} annotations.
 	 * @param metadata the meta data
 	 * @param phase the phase of the call
 	 * @return if the item should be skipped
 	 */
 	public boolean shouldSkip(@Nullable AnnotatedTypeMetadata metadata, @Nullable ConfigurationPhase phase) {
+		// 没有被 @Conditional 或其派生注解标注，则不会跳过
 		if (metadata == null || !metadata.isAnnotated(Conditional.class.getName())) {
 			return false;
 		}
 
+		// 没有指定 phase，注意 phase 可以分为 PARSE_CONFIGURATION 或 REGISTER_BEAN 类型
 		if (phase == null) {
+			// 若标有 @Component，@Import，@Bean 或 @Configuration 等注解的话，则说明是 PARSE_CONFIGURATION 类型
 			if (metadata instanceof AnnotationMetadata &&
 					ConfigurationClassUtils.isConfigurationCandidate((AnnotationMetadata) metadata)) {
 				return shouldSkip(metadata, ConfigurationPhase.PARSE_CONFIGURATION);
 			}
+			// 否则是REGISTER_BEAN类型
 			return shouldSkip(metadata, ConfigurationPhase.REGISTER_BEAN);
 		}
 
 		List<Condition> conditions = new ArrayList<>();
+
+		// 获得所有标有 @Conditional 注解或其派生注解里面的 Condition 接口实现类并实例化成对象
+		// 比如 @Conditional(OnBeanCondition.class) 则获得 OnBeanCondition.class，OnBeanCondition.class 往往实现了 Condition 接口
 		for (String[] conditionClasses : getConditionClasses(metadata)) {
+			// 将类实例化成对象
 			for (String conditionClass : conditionClasses) {
 				Condition condition = getCondition(conditionClass, this.context.getClassLoader());
 				conditions.add(condition);
 			}
 		}
 
+		// 排序，即按照 Condition 的优先级进行排序
 		AnnotationAwareOrderComparator.sort(conditions);
 
 		for (Condition condition : conditions) {
 			ConfigurationPhase requiredPhase = null;
 			if (condition instanceof ConfigurationCondition) {
+				// 从 condition 中获得对 bean 是解析还是注册
 				requiredPhase = ((ConfigurationCondition) condition).getConfigurationPhase();
 			}
+			// 若 requiredPhase 为 null 或获取的阶段类型正是当前阶段类型且不符合 condition 的 matches 条件，则跳过
 			if ((requiredPhase == null || requiredPhase == phase) && !condition.matches(this.context, metadata)) {
 				return true;
 			}
