@@ -642,7 +642,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (instanceWrapper == null) {
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
 		}
-		Object bean = instanceWrapper.getWrappedInstance();
+		Object bean = instanceWrapper.getWrappedInstance();   // 相当于 new 一个 bean 对象，还是还没填充属性
 		Class<?> beanType = instanceWrapper.getWrappedClass();
 		if (beanType != NullBean.class) {
 			mbd.resolvedTargetType = beanType;
@@ -675,6 +675,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
 
+		// doCreateBean() 实例化一个对象，还没填充属性，前一步骤已经将当前创建的 bean 放入到三级缓存中
 		// Initialize the bean instance.
 		Object exposedObject = bean;
 		try {
@@ -1549,9 +1550,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			checkDependencies(beanName, mbd, filteredPds, pvs);
 		}
 
-		// 将pvs上所有的属性填充到BeanWrapper对应的Bean实例中
-		// 注意：这一步完成结束后为止。我们的HelloServiceImpl这个Bean依赖的parent，还只是RuntimeBeanReference类型，还并不是真实的Parent这个Bean
-		// 在Spring的解析段，其它容器中是没有依赖的Bean的实例的，因此这个被依赖的Bean需要表示成RuntimeBeanReferenc对象，并将它放到BeanDefinition的MutablePropertyValues中。
+		// 将 pvs 上所有的属性填充到 BeanWrapper 对应的 Bean 实例中
+		// 在 spring 的解析段，其它容器中是没有依赖的 bean 的实例的，因此这个被依赖的 bean 需要表示成 RuntimeBeanReferenc 对象，并将它放到 BeanDefinition 的 MutablePropertyValues 中
+		// 申请属性值，如果发现依赖的对象不存在，就调用 BeanFactory.getBean()
 		if (pvs != null) {
 			applyPropertyValues(beanName, mbd, bw, pvs);
 		}
@@ -1770,6 +1771,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	}
 
 	/**
+	 * 获取容器中对象，将对象作为属性填充给当前正在创建的 bean 对象
+	 *
 	 * Apply the given property values, resolving any runtime references
 	 * to other beans in this bean factory. Must use deep copy, so we
 	 * don't permanently modify this property.
@@ -1824,7 +1827,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 			else {
 				String propertyName = pv.getName();
-				Object originalValue = pv.getValue();
+				Object originalValue = pv.getValue();	// 这里获取到属性 bean b，但是 b 还没创建
 				if (originalValue == AutowiredPropertyMarker.INSTANCE) {
 					Method writeMethod = bw.getPropertyDescriptor(propertyName).getWriteMethod();
 					if (writeMethod == null) {
@@ -1832,7 +1835,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					}
 					originalValue = new DependencyDescriptor(new MethodParameter(writeMethod, 0), true);
 				}
+				// 解析当前正在创建的 bean 对象的属性值，如果需要就进行 getBean()
 				Object resolvedValue = valueResolver.resolveValueIfNecessary(pv, originalValue);
+				// aService 注入 bService，上一行 resolveValueIfNecessary() 将没有创建好的 bean 对象通过 getBean() 创建好
+				// 因为 aService 此时正在创建，已经在三级缓存中，所以上一行代码 getBean() 能够顺利的创建 bService，并注入属性
+				// 这时候，bService 已经完成创建好，返回 bService，让 aService 进行依赖注入，就可以创建完整的 aService 对象，循环依赖的问题就此解决
 				Object convertedValue = resolvedValue;
 				boolean convertible = bw.isWritableProperty(propertyName) &&
 						!PropertyAccessorUtils.isNestedOrIndexedProperty(propertyName);
@@ -1919,11 +1926,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// 第一步：先执行所有的  AwareMethods，具体如下代码，比较简单
 		if (System.getSecurityManager() != null) {
 			AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
+				// 检查 Aware 相关的接口
 				invokeAwareMethods(beanName, bean);
 				return null;
 			}, getAccessControlContext());
 		}
 		else {
+			// 检查 Aware 相关的接口
 			invokeAwareMethods(beanName, bean);
 		}
 

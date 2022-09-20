@@ -371,10 +371,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				if (mbd.isSingleton()) {
 					// 也是一样先尝试从缓存去获取，获取失败就通过 ObjectFactory 的 createBean() 方法创建
 					// 这个 getSingleton() 方法和上面是重载方法，它支持通过 ObjectFactory 去根据 Scope 来创建对象，具体源码解析见下面
-					sharedInstance = getSingleton(beanName, () -> {
+					sharedInstance = getSingleton(beanName, () -> {     // createBean() 方法前的一个重要方法
 						try {
 							// === 这是创建Bean的核心方法，非常重要 ===
-							return createBean(beanName, mbd, args);
+							Object obj = createBean(beanName, mbd, args);
+							return obj;
 						}
 						catch (BeansException ex) {
 							// Explicitly remove instance from singleton cache: It might have been put there

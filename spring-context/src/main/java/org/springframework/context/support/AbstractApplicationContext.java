@@ -535,7 +535,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			* 初始化 BeanFactory，解析 XML
 			* 获取新的 BeanFactory，销毁原有 BeanFactory，为每个 bean 生成 BeanDefinition 等, 注意，此处是获取新的，销毁旧的，这就是刷新的意义
 			* 获取到 ConfigurableListableBeanFactory 然后向下转型就可以得到 DefaultListableBeanFactory (左右通吃)
-			* 通过 obtainFreshBeanFactory() 获取到 DefaultListableBeanFactory，但是用父类接口
+			* 通过 obtainFreshBeanFactory() 获取到 DefaultListableBeanFactory，但是用父类接口接收
 			*/
 			// Tell the subclass to refresh the internal bean factory.
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
@@ -659,7 +659,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 
 		// Initialize any placeholder property sources in the context environment.
-		// 初始化系统属性，需要重写改方法
+		// 初始化系统属性，需要重写该方法
 		initPropertySources();
 
 		// Validate that all properties marked as required are resolvable:
@@ -805,7 +805,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * <p>Must be called before singleton instantiation.
 	 */
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
-		// getBeanFactoryPostProcessors() 获取所有的后置处理器，并处理后置处理器
+		// getBeanFactoryPostProcessors() 获取所有的 bean工厂 后置处理器，并处理获取到的后置处理器
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 
 		// Detect a LoadTimeWeaver and prepare for weaving, if found in the meantime

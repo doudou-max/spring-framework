@@ -62,7 +62,7 @@ final class PostProcessorRegistrationDelegate {
 			List<BeanFactoryPostProcessor> regularPostProcessors = new ArrayList<>();
 			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
 
-			// 遍历所有的后置处理器，并进行处理
+			// 遍历所有的 bean工厂 后置处理器，并进行处理
 			// ConfigurationClassPostProcessor 是 BeanFactoryPostProcessor(BeanDefinitionRegistryPostProcessor) 的唯一实现
 			for (BeanFactoryPostProcessor postProcessor : beanFactoryPostProcessors) {
 				if (postProcessor instanceof BeanDefinitionRegistryPostProcessor) {

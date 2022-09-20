@@ -373,7 +373,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		Set<ConfigurationClass> alreadyParsed = new HashSet<>(configCandidates.size());
 		do {
 			StartupStep processConfig = this.applicationStartup.start("spring.context.config-classes.parse");
-			// 核心方法：具体详解如下
+			// 核心方法：具体详解如下 (解析用户自定义的配置类，其中也包括 ImportSelector)
 			parser.parse(candidates);
 			// 校验 配置类不能使final的，因为需要使用CGLIB生成代理对象，见postProcessBeanFactory方法
 			parser.validate();

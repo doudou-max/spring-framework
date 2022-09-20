@@ -15,7 +15,7 @@ public class CycleMain {
 	 * spring 如何处理循环依赖 ?
 	 * 	spring 将发生循环依赖的 bean 放入三级缓存
 	 *  	refresh()
-	 *  	invokeBeanFactoryPostProcessors() 	将所有的 BeanPostProcessor 放入容器
+	 *  	invokeBeanFactoryPostProcessors() 	将所有的 BeanFactoryPostProcessor 放入容器
 	 *  		SmartInstantiationAwareBeanPostProcessor.getEarlyBeanReference(Object bean, String beanName) 获取二级缓存对象
 	 *  	finishBeanFactoryInitialization()
 	 *  	beanFactory.preInstantiateSingletons()

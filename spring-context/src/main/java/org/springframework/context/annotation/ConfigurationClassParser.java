@@ -180,7 +180,7 @@ class ConfigurationClassParser {
 			try {
 				// 我们使用的注解驱动，所以会到这个 parse 进来处理。其实内部调用都是 processConfigurationClass 进行解析的
 				if (bd instanceof AnnotatedBeanDefinition) {
-					//单反有注解标注的，都会走这里来解析
+					// 但凡有注解标注的，都会走这里来解析
 					parse(((AnnotatedBeanDefinition) bd).getMetadata(), holder.getBeanName());
 				}
 				else if (bd instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) bd).hasBeanClass()) {
@@ -198,7 +198,7 @@ class ConfigurationClassParser {
 						"Failed to parse configuration class [" + bd.getBeanClassName() + "]", ex);
 			}
 		}
-		// 最最最后面才处理实现了DeferredImportSelector接口的类，最最后哦~~
+		// 最最最后面才处理实现了DeferredImportSelector接口的类，最最后
 		this.deferredImportSelectorHandler.process();
 	}
 
