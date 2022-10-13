@@ -401,7 +401,8 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 	}
 
 	/**
-	 * 111
+	 * 进行真正的属性注入，在 doCreateBean() 方法中，把 @Autowired 标注的属性添加到 injectionMetadataCache 缓存中
+	 * 在这一步从缓存中拿数据，进行属性的注入
 	 *
 	 * @param pvs the property values that the factory is about to apply (never {@code null})
 	 * @param bean the bean instance created, but whose properties have not yet been set
@@ -471,6 +472,10 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 	}
 
 
+	/**
+	 * 获取自动装配的元数据，转成 InjectionMetadata
+	 * 并且放到缓存中
+	 */
 	private InjectionMetadata findAutowiringMetadata(String beanName, Class<?> clazz, @Nullable PropertyValues pvs) {
 		// Fall back to class name as cache key, for backwards compatibility with custom callers.
 		String cacheKey = (StringUtils.hasLength(beanName) ? beanName : clazz.getName());

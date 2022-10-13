@@ -581,7 +581,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 				// Initialize event multicaster for this context.
 				// 初始化事件广播器
-				// 用户自己定义了这个 Bean（备注：Bean 名称必须是 "applicationEventMulticaster" ），就以用户的为准。
+				// 用户自己定义了这个 Bean (备注：Bean 名称必须是 "applicationEventMulticaster")，就以用户的为准。
 				// 否则注册一个系统默认的 SimpleApplicationEventMulticaster
 				initApplicationEventMulticaster();
 

@@ -639,6 +639,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (mbd.isSingleton()) {
 			instanceWrapper = this.factoryBeanInstanceCache.remove(beanName);
 		}
+		// 创建 bean 实例
 		if (instanceWrapper == null) {
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
 		}
@@ -652,6 +653,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		synchronized (mbd.postProcessingLock) {
 			if (!mbd.postProcessed) {
 				try {
+					// 被 @Autowired、@Value 标记的属性在这里获取
+					// 然后在 populateBean() 方法中进行属性填充
 					applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);
 				}
 				catch (Throwable ex) {
@@ -681,9 +684,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		try {
 			// 填充 bean 这个方法会执行 -> InstantiationAwareBeanPostProcessor.postProcessBeforeInstantiation()
 			// Instantiation：初始化  Initialization：实例化   先初始化再实例化
-			//
 			populateBean(beanName, mbd, instanceWrapper);	// 循环调用 getBean() 实例化属性对象，拿到对象之后填充属性
-			// 初始化 bean，处理 BeanPostProcessor 实现类的逻辑
+			// 初始化 bean，处理 BeanPostProcessor 实现类的逻辑 (这一步生成代理对象)
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
 		}
 		catch (Throwable ex) {
@@ -1445,7 +1447,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 	/**
 	 * 在完成 Bean 实例化后，Spring 容器会给这个 Bean 注入相关的依赖 Bean，依赖注入(DI)
-	 * 在源码中，这一步通过类 AbstractAutowireCapableBeanFactory 中的 populateBean() 方法完成。
+	 * 在源码中，这一步通过类 AbstractAutowireCapableBeanFactory 中的 populateBean() 方法完成
+	 *
+	 * 这一步并不会处理 @Autowired、@Value 注解，这个在上一步的 applyMergedBeanDefinitionPostProcessors 已经处理
 	 *
 	 * Populate the bean instance in the given BeanWrapper with the property values
 	 * from the bean definition.
@@ -1525,7 +1529,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			// 若返回null，整个populateBean方法就结束了=============
 			for (InstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().instantiationAware) {
 				// 调用 org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor.postProcessProperties
-				// 这里会对 @Autowired 标记的属性进行依赖注入
+				// 这里会对 @Autowired 标记的属性进行依赖注入 AutowiredAnnotationBeanPostProcessor.postProcessProperties
 				PropertyValues pvsToUse = bp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
 				if (pvsToUse == null) {
 					if (filteredPds == null) {
