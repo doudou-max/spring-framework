@@ -16,6 +16,12 @@
 
 package org.springframework.beans.factory.annotation;
 
+import org.springframework.beans.MutablePropertyValues;
+import org.springframework.beans.PropertyValues;
+import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.lang.Nullable;
+import org.springframework.util.ReflectionUtils;
+
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -25,12 +31,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
-
-import org.springframework.beans.MutablePropertyValues;
-import org.springframework.beans.PropertyValues;
-import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.lang.Nullable;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * Internal class for managing injection metadata.
@@ -110,13 +110,21 @@ public class InjectionMetadata {
 		this.checkedElements = checkedElements;
 	}
 
+	/**
+	 * bean 对象属性注入
+	 *
+	 * @param target   对象
+	 * @param beanName beanName
+	 * @param pvs      属性
+	 */
 	public void inject(Object target, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
 		Collection<InjectedElement> checkedElements = this.checkedElements;
-		Collection<InjectedElement> elementsToIterate =
-				(checkedElements != null ? checkedElements : this.injectedElements);
+		Collection<InjectedElement> elementsToIterate = (checkedElements != null ? checkedElements : this.injectedElements);
 		if (!elementsToIterate.isEmpty()) {
+			// 遍历注入元素
 			for (InjectedElement element : elementsToIterate) {
 				// 主要的方法，还是在 InjectedElement#inject 里
+				// field inject or method inject
 				element.inject(target, beanName, pvs);
 			}
 		}

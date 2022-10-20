@@ -285,7 +285,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 			// 在 getBean() 方法中，getObjectForBeanInstance() 是个频繁使用的方法。因此为了更好的知道细节，下面会详解这个方法的
 			// 其实简单理解就是处理 FactoryBean 的 getObject() 方法
-			// 如果是一个普通的 bean 直接返回，如果是一个 FactoryBean 就进行实例化
+			// 如果是一个普通的 bean 直接返回，如果是一个 FactoryBean 就进行实例化 (dubbo 2.7.8 consumer 有运用到 init())
 			bean = getObjectForBeanInstance(sharedInstance, name, beanName, null);
 		}
 
