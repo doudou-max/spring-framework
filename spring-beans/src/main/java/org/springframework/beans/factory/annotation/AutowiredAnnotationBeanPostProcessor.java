@@ -494,11 +494,14 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 
 		do {
 			final List<InjectionMetadata.InjectedElement> currElements = new ArrayList<>();
-			// 通过反射获取该类所有的字段，并遍历每一个字段，并通过方法findAutowiredAnnotation遍历每一个字段的所用注解，并如果用autowired修饰了，则返回auotowired相关属性
+			// 通过反射获取该类所有的字段，并遍历每一个字段，并通过方法 findAutowiredAnnotation() 遍历每一个字段的所用注解，
+			// 并如果用 autowired 修饰，则返回 autowired 相关属性
 			ReflectionUtils.doWithLocalFields(targetClass, field -> {
+				// 查找注解修改的变量
 				MergedAnnotation<?> ann = findAutowiredAnnotation(field);
 				if (ann != null) {
-					if (Modifier.isStatic(field.getModifiers())) {    // 校验 autowired 注解是否用在了 static 方法上
+					// 校验 autowired 注解是否用在了 static 方法上
+					if (Modifier.isStatic(field.getModifiers())) {
 						if (logger.isInfoEnabled()) {
 							logger.info("Autowired annotation is not supported on static fields: " + field);
 						}
@@ -511,10 +514,12 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 
 			// 和上面一样的逻辑，但是是通过反射处理类的 method
 			ReflectionUtils.doWithLocalMethods(targetClass, method -> {
+				// 查找注解修饰的方法
 				Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
 				if (!BridgeMethodResolver.isVisibilityBridgeMethodPair(method, bridgedMethod)) {
 					return;
 				}
+				// 根据方法找到变量类型
 				MergedAnnotation<?> ann = findAutowiredAnnotation(bridgedMethod);
 				if (ann != null && method.equals(ClassUtils.getMostSpecificMethod(method, clazz))) {
 					if (Modifier.isStatic(method.getModifiers())) {
@@ -544,9 +549,15 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 		return InjectionMetadata.forElements(elements, clazz);
 	}
 
+	/**
+	 * 查找 @Autowired 和 @Value 注解修饰的变量
+	 *
+	 */
 	@Nullable
 	private MergedAnnotation<?> findAutowiredAnnotation(AccessibleObject ao) {
 		MergedAnnotations annotations = MergedAnnotations.from(ao);
+		// this.autowiredAnnotationTypes 在 new AutowiredAnnotationBeanPostProcessor() 的时候
+		// 往其中添加两个注解：@Autowired 和 @Value
 		for (Class<? extends Annotation> type : this.autowiredAnnotationTypes) {
 			MergedAnnotation<?> annotation = annotations.get(type);
 			if (annotation.isPresent()) {

@@ -57,6 +57,8 @@ public final class BridgeMethodResolver {
 
 
 	/**
+	 * 查找注解修饰的方法，因为 @Autowired 也支持修饰方法
+	 *
 	 * Find the original method for the supplied {@link Method bridge Method}.
 	 * <p>It is safe to call this method passing in a non-bridge {@link Method} instance.
 	 * In such a case, the supplied {@link Method} instance is returned directly to the caller.
