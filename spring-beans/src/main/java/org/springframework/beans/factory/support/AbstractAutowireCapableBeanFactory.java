@@ -1164,7 +1164,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
 				Class<?> targetType = determineTargetType(beanName, mbd);
 				if (targetType != null) {
-					// beanPostProcessor 的前置处理
+					// beanPostProcessor 的前置处理 (aop 配置定义解析)
 					bean = applyBeanPostProcessorsBeforeInstantiation(targetType, beanName);
 					if (bean != null) {
 						bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
@@ -1178,7 +1178,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 	/**
 	 * 获取所有的 InstantiationAwareBeanPostProcessor 的实现类，调用前置执行
-	 * aop 的处理：AnnotationAwareAspectJAutoProxyCreator
+	 * aop 的处理：AnnotationAwareAspectJAutoProxyCreator -> AbstractAutoProxyCreator
 	 *
 	 * Apply InstantiationAwareBeanPostProcessors to the specified bean definition
 	 * (by class and name), invoking their {@code postProcessBeforeInstantiation} methods.

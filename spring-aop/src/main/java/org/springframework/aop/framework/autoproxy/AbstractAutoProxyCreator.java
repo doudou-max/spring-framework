@@ -382,6 +382,8 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	}
 
 	/**
+	 * 子类要实现这个方法返回 true，如果需要进行 aop 增强
+	 *
 	 * Subclasses should override this method to return {@code true} if the
 	 * given bean should not be considered for auto-proxying by this post-processor.
 	 * <p>Sometimes we need to be able to avoid this happening, e.g. if it will lead to
