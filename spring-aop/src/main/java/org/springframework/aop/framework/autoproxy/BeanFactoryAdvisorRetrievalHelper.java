@@ -59,6 +59,7 @@ public class BeanFactoryAdvisorRetrievalHelper {
 
 
 	/**
+	 * spring ioc 是 for 循环一个一个创建，这里是当前创建的 bean 对象的所有 aop 信息，
 	 * Find all eligible Advisor beans in the current bean factory,
 	 * ignoring FactoryBeans and excluding beans that are currently in creation.
 	 * @return the list of {@link org.springframework.aop.Advisor} beans
@@ -66,6 +67,7 @@ public class BeanFactoryAdvisorRetrievalHelper {
 	 */
 	public List<Advisor> findAdvisorBeans() {
 		// Determine list of advisor bean names, if not cached already.
+		// 先从缓存获取 advisorBeans
 		String[] advisorNames = this.cachedAdvisorBeanNames;
 		if (advisorNames == null) {
 			// Do not initialize FactoryBeans here: We need to leave all regular beans
@@ -74,6 +76,7 @@ public class BeanFactoryAdvisorRetrievalHelper {
 					this.beanFactory, Advisor.class, true, false);
 			this.cachedAdvisorBeanNames = advisorNames;
 		}
+		// 缓存中没有值，直接返回 ArrayList
 		if (advisorNames.length == 0) {
 			return new ArrayList<>();
 		}

@@ -89,14 +89,17 @@ public class AnnotationAwareAspectJAutoProxyCreator extends AspectJAwareAdvisorA
 	@Override
 	protected List<Advisor> findCandidateAdvisors() {
 		// Add all the Spring advisors found according to superclass rules.
+		// 获取 candidate advisors，第一次缓存中没有
 		List<Advisor> advisors = super.findCandidateAdvisors();
 		// Build Advisors for all AspectJ aspects in the bean factory.
+		// 通过 buildAspectJAdvisors() 构建当前 bean 的 candidate advisors
 		if (this.aspectJAdvisorsBuilder != null) {
+			// 第一次 buildAspectJAdvisors 构建，把 advisors 放到缓存中
 			advisors.addAll(this.aspectJAdvisorsBuilder.buildAspectJAdvisors());
 		}
 		return advisors;
 	}
-
+	/** 判断当前类是否需要代理增强 */
 	@Override
 	protected boolean isInfrastructureClass(Class<?> beanClass) {
 		// Previously we setProxyTargetClass(true) in the constructor, but that has too
@@ -108,7 +111,7 @@ public class AnnotationAwareAspectJAutoProxyCreator extends AspectJAwareAdvisorA
 		// defined on the interface. We could potentially relax the restriction about
 		// not advising aspects in the future.
 		return (super.isInfrastructureClass(beanClass) ||
-				(this.aspectJAdvisorFactory != null && this.aspectJAdvisorFactory.isAspect(beanClass)));
+				(this.aspectJAdvisorFactory != null && this.aspectJAdvisorFactory.isAspect(beanClass)));  // aspectJAdvisorFactory.isAspect @Aspect 注解检查
 	}
 
 	/**

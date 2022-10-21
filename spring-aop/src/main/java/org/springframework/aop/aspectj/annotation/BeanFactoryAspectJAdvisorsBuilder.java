@@ -74,6 +74,11 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 
 
 	/**
+	 * 先遍历所有的类；
+	 *   判断是否切面，只有切面才会进入后面逻辑
+	 * 	 获取每个 Aspect 的切面列表
+	 *   保存 Aspect 的切面列表到缓存 advisorsCache 中
+	 *
 	 * Look for AspectJ-annotated aspect beans in the current bean factory,
 	 * and return to a list of Spring AOP Advisors representing them.
 	 * <p>Creates a Spring Advisor for each AspectJ advice method.
@@ -91,6 +96,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 					aspectNames = new ArrayList<>();
 					String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 							this.beanFactory, Object.class, true, false);
+					// 1.遍历所有 beanNames
 					for (String beanName : beanNames) {
 						if (!isEligibleBean(beanName)) {
 							continue;
@@ -101,14 +107,17 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 						if (beanType == null) {
 							continue;
 						}
+						// 2.判断是否是切面 ( isAspect() )
 						if (this.advisorFactory.isAspect(beanType)) {
 							aspectNames.add(beanName);
 							AspectMetadata amd = new AspectMetadata(beanType, beanName);
 							if (amd.getAjType().getPerClause().getKind() == PerClauseKind.SINGLETON) {
 								MetadataAwareAspectInstanceFactory factory =
 										new BeanFactoryAspectInstanceFactory(this.beanFactory, beanName);
+								// 3.获取所有的切面列表 ( getAdvisors() )
 								List<Advisor> classAdvisors = this.advisorFactory.getAdvisors(factory);
 								if (this.beanFactory.isSingleton(beanName)) {
+									// 保存切面信息 (放到缓存中，后续可以直接从缓存中拿)
 									this.advisorsCache.put(beanName, classAdvisors);
 								}
 								else {

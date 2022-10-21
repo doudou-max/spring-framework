@@ -237,18 +237,24 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	/**
 	 * 后置处理器的前置处理
 	 *
+	 * spring aop 实现的前置处理：
+	 * 	  查找 @Aspect 注解相关开发
+	 *
 	 * @param beanClass the class of the bean to be instantiated
 	 * @param beanName the name of the bean
 	 * @return
 	 */
 	@Override
 	public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) {
-		Object cacheKey = getCacheKey(beanClass, beanName);
+		Object cacheKey = getCacheKey(beanClass, beanName);   // cacheKey = beanName
 
 		if (!StringUtils.hasLength(beanName) || !this.targetSourcedBeans.contains(beanName)) {
+			// 如果 advisedBeans 已经包含，已经处理过
 			if (this.advisedBeans.containsKey(cacheKey)) {
 				return null;
 			}
+			// shouldSkip() 很重要，处理 aop 相关的配置，添加到 advisedBeans
+			// shouldSkip() 查看 AspectJAwareAdvisorAutoProxyCreator 的实现
 			if (isInfrastructureClass(beanClass) || shouldSkip(beanClass, beanName)) {
 				this.advisedBeans.put(cacheKey, Boolean.FALSE);
 				return null;
