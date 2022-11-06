@@ -17,8 +17,7 @@ public class AccountService {
 	@Transactional
 	public void save() {
 		accountDao.save();
-//		String str = null;
-//		str.length();
+		String str = null;
+		str.length();
 	}
-
 }

@@ -199,6 +199,7 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 				this.interceptorsAndDynamicMethodMatchers.get(++this.currentInterceptorIndex);
 		// InterceptorAndDynamicMethodMatcher 它是 spring 内部使用的一个类。很简单，就是把 MethodInterceptor 实例和 MethodMatcher 放在了一起，
 		// 看看在 advisor chain 里面是否能够匹配上
+		// 只有第一次进来的时候属于 InterceptorAndDynamicMethodMatcher 类型，后面都是 ExposeInvocationInterceptor 类型，但是也是调用 proceed() 方法
 		if (interceptorOrInterceptionAdvice instanceof InterceptorAndDynamicMethodMatcher) {
 			// Evaluate dynamic method matcher here: static part will already have
 			// been evaluated and found to match.

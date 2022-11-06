@@ -929,10 +929,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			// 	  注意如果当前 BeanDefinition 存在父 BeanDefinition，会基于父 BeanDefinition 生成一个 RootBeanDefinition,
 			// 	  然后再将调用 OverrideFrom 子 BeanDefinition 的相关属性覆写进去
 			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
-			// 不是抽象类 且 是单例 且 不是懒加载，下面再进行是否 factoryBean 的判断，else{} getBean(beanName) 实例化非懒加载 bean 对象
+			// 不是抽象类 且 是单例 且 不是懒加载
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
-				// 这是 spring 提供的对工程 bean 模式的支持：比如第三方框架的继承经常采用这种方式
-				// 如果是工厂 Bean，那就会此工厂 Bean 放进去
+				// 通过 FactoryBean 创建 bean (FactoryBean 一般 用来 实例化 实例过程 复杂的 bean)
 				if (isFactoryBean(beanName)) {
 					// 拿到工厂 Bean 本省，注意有前缀为：FACTORY_BEAN_PREFIX
 					Object bean = getBean(FACTORY_BEAN_PREFIX + beanName);
