@@ -16,14 +16,14 @@
 
 package org.springframework.context.support;
 
-import java.io.IOException;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.lang.Nullable;
+
+import java.io.IOException;
 
 /**
  * Base class for {@link org.springframework.context.ApplicationContext}
@@ -119,6 +119,7 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 */
 	@Override
 	protected final void refreshBeanFactory() throws BeansException {
+		// 如果有工厂就销毁工厂
 		if (hasBeanFactory()) {
 			destroyBeans();
 			closeBeanFactory();
@@ -126,14 +127,14 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 		try {
 			// 根据继承图，DefaultListableBeanFactory 是左右通吃，是最全的 BeanFactory，所以选择这个
 			DefaultListableBeanFactory beanFactory = createBeanFactory();
-			// getId() = org.springframework.context.support.ClassPathXmlApplicationContext@2344fc66
+			// 设置工厂序列化id
 			beanFactory.setSerializationId(getId());
+			// 设备 BeanFactory 属性：是否允许 bean 覆盖、是否允许循环引用
 			customizeBeanFactory(beanFactory);
-			// ***** 这个就是最重要的了，加载所有的 Bean 配置信息，具体如下详细解释
-			// 它属于模版方法，由子类去实现加载的方式，Config 配置文件的 Bean 定义已经注册完成，其它单例Bean是还没有解析的
-			// xml、annotation 方式装载 bean 的实现
+			// 加载 bean 到工厂 (xml、annotation 等方式)
 			loadBeanDefinitions(beanFactory);
-			this.beanFactory = beanFactory;  // 获取到 beanFactory 赋值给当前对象的 beanFactory
+			// beanFactory 给当前上下文
+			this.beanFactory = beanFactory;
 		}
 		catch (IOException ex) {
 			throw new ApplicationContextException("I/O error parsing bean definition source for " + getDisplayName(), ex);

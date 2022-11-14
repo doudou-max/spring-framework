@@ -325,6 +325,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 			logger.trace("Loading XML bean definitions from " + encodedResource);
 		}
 
+		// 用 ThreadLocal 存放配置文件资源
 		Set<EncodedResource> currentResources = this.resourcesCurrentlyBeingLoaded.get();
 
 		if (!currentResources.add(encodedResource)) {
@@ -390,10 +391,10 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 			throws BeanDefinitionStoreException {
 
 		try {
-			// TODO: 2021/10/28 从这里直接跳到 org.springframework.beans.factory.xml.DefaultNamespaceHandlerResolver.resolve
-			// 为什么会直接跳到那里
+			// 将 xml 文件转成 Document
 			Document doc = doLoadDocument(inputSource, resource);
-			int count = registerBeanDefinitions(doc, resource);  // 这里跳进去解析
+			// 注册 bean
+			int count = registerBeanDefinitions(doc, resource);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Loaded " + count + " bean definitions from " + resource);
 			}
@@ -513,8 +514,8 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	public int registerBeanDefinitions(Document doc, Resource resource) throws BeanDefinitionStoreException {
 		BeanDefinitionDocumentReader documentReader = createBeanDefinitionDocumentReader();
 		int countBefore = getRegistry().getBeanDefinitionCount();
-		// 这里跳进去解析 xml 的 aop
-		documentReader.registerBeanDefinitions(doc, createReaderContext(resource));  // 这里跳进去解析
+		// 注册 bean
+		documentReader.registerBeanDefinitions(doc, createReaderContext(resource));
 		return getRegistry().getBeanDefinitionCount() - countBefore;
 	}
 

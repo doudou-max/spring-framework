@@ -79,6 +79,8 @@ public class XmlWebApplicationContext extends AbstractRefreshableWebApplicationC
 	 */
 	@Override
 	protected void loadBeanDefinitions(DefaultListableBeanFactory beanFactory) throws BeansException, IOException {
+
+		// 实例化一个 XmlBeanDefinitionReader 对象
 		// Create a new XmlBeanDefinitionReader for the given BeanFactory.
 		XmlBeanDefinitionReader beanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
 
@@ -91,6 +93,8 @@ public class XmlWebApplicationContext extends AbstractRefreshableWebApplicationC
 		// Allow a subclass to provide custom initialization of the reader,
 		// then proceed with actually loading the bean definitions.
 		initBeanDefinitionReader(beanDefinitionReader);
+
+		// 加载 bean 定义
 		loadBeanDefinitions(beanDefinitionReader);
 	}
 
@@ -122,6 +126,7 @@ public class XmlWebApplicationContext extends AbstractRefreshableWebApplicationC
 		String[] configLocations = getConfigLocations();
 		if (configLocations != null) {
 			for (String configLocation : configLocations) {
+				// 加载 bean 定义
 				reader.loadBeanDefinitions(configLocation);
 			}
 		}

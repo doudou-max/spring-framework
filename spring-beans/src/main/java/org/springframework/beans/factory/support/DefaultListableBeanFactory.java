@@ -16,60 +16,10 @@
 
 package org.springframework.beans.factory.support;
 
-import java.io.IOException;
-import java.io.NotSerializableException;
-import java.io.ObjectInputStream;
-import java.io.ObjectStreamException;
-import java.io.Serializable;
-import java.lang.annotation.Annotation;
-import java.lang.ref.Reference;
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Method;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
-
-import javax.inject.Provider;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.TypeConverter;
-import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.BeanCurrentlyInCreationException;
-import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.beans.factory.BeanNotOfRequiredTypeException;
-import org.springframework.beans.factory.CannotLoadBeanClassException;
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.InjectionPoint;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
-import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.SmartFactoryBean;
-import org.springframework.beans.factory.SmartInitializingSingleton;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.config.DependencyDescriptor;
-import org.springframework.beans.factory.config.NamedBeanHolder;
+import org.springframework.beans.factory.*;
+import org.springframework.beans.factory.config.*;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.MergedAnnotation;
@@ -78,12 +28,21 @@ import org.springframework.core.annotation.MergedAnnotations.SearchStrategy;
 import org.springframework.core.log.LogMessage;
 import org.springframework.core.metrics.StartupStep;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.CompositeIterator;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
+import org.springframework.util.*;
+
+import javax.inject.Provider;
+import java.io.*;
+import java.lang.annotation.Annotation;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * Spring's default implementation of the {@link ConfigurableListableBeanFactory}
@@ -1007,18 +966,21 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		if (beanDefinition instanceof AbstractBeanDefinition) {
 			try {
 				((AbstractBeanDefinition) beanDefinition).validate();
-			}
-			catch (BeanDefinitionValidationException ex) {
+			} catch (BeanDefinitionValidationException ex) {
 				throw new BeanDefinitionStoreException(beanDefinition.getResourceDescription(), beanName,
 						"Validation of bean definition failed", ex);
 			}
 		}
 
+		// 从容器拿 bean 判空处理 (beanDefinitionMap 容器)
 		BeanDefinition existingDefinition = this.beanDefinitionMap.get(beanName);
+
 		if (existingDefinition != null) {
+			// 不允许覆盖，报错
 			if (!isAllowBeanDefinitionOverriding()) {
 				throw new BeanDefinitionOverrideException(beanName, beanDefinition, existingDefinition);
 			}
+			// 用框架定义的 bean 覆盖用户自定义的 bean
 			else if (existingDefinition.getRole() < beanDefinition.getRole()) {
 				// e.g. was ROLE_APPLICATION, now overriding with ROLE_SUPPORT or ROLE_INFRASTRUCTURE
 				if (logger.isInfoEnabled()) {
@@ -1027,23 +989,24 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 							existingDefinition + "] with [" + beanDefinition + "]");
 				}
 			}
+			// 用新的 bean 覆盖旧的 bean
 			else if (!beanDefinition.equals(existingDefinition)) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Overriding bean definition for bean '" + beanName +
 							"' with a different definition: replacing [" + existingDefinition +
 							"] with [" + beanDefinition + "]");
 				}
-			}
-			else {
+			} else {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Overriding bean definition for bean '" + beanName +
 							"' with an equivalent definition: replacing [" + existingDefinition +
 							"] with [" + beanDefinition + "]");
 				}
 			}
+
 			this.beanDefinitionMap.put(beanName, beanDefinition);
-		}
-		else {
+		} else {
+			// 判断是否已经有其他的 Bean 开始初始化了
 			if (hasBeanCreationStarted()) {
 				// Cannot modify startup-time collection elements anymore (for stable iteration)
 				synchronized (this.beanDefinitionMap) {
@@ -1055,6 +1018,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 					removeManualSingletonName(beanName);
 				}
 			}
+			// 注册 bean
 			else {
 				// Still in startup registration phase
 				this.beanDefinitionMap.put(beanName, beanDefinition);
@@ -1066,8 +1030,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 		if (existingDefinition != null || containsSingleton(beanName)) {
 			resetBeanDefinition(beanName);
-		}
-		else if (isConfigurationFrozen()) {
+		} else if (isConfigurationFrozen()) {
 			clearByTypeCache();
 		}
 	}
