@@ -46,7 +46,7 @@ final class PostProcessorRegistrationDelegate {
 
 
 	/**
-	 * 循环去执行 list 里面所有实现 BeanFactoryPostProcessor 和 BeanDefinitionRegistryPostProcessor 的对象的相关方法
+	 * 调用BeanFactory后置处理器
 	 *
 	 * @param beanFactory
 	 * @param beanFactoryPostProcessors

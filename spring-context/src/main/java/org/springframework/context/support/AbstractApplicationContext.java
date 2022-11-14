@@ -720,7 +720,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			beanFactory.setTempClassLoader(new ContextTypeMatchClassLoader(beanFactory.getBeanClassLoader()));
 		}
 
-		// 注入一些其它信息的 bean，比如 environment、systemProperties、SystemEnvironment等
+		// 注入一些其它信息的 bean，比如 environment、systemProperties、systemEnvironment 等
 		// Register default environment beans.
 		if (!beanFactory.containsLocalBean(ENVIRONMENT_BEAN_NAME)) {
 			beanFactory.registerSingleton(ENVIRONMENT_BEAN_NAME, getEnvironment());
