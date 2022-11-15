@@ -46,10 +46,10 @@ final class PostProcessorRegistrationDelegate {
 
 
 	/**
-	 * 调用BeanFactory后置处理器
+	 * BeanFactory 调用工厂后置处理器
 	 *
-	 * @param beanFactory
-	 * @param beanFactoryPostProcessors
+	 * @param beanFactory               工厂
+	 * @param beanFactoryPostProcessors 工厂后置处理器列表
 	 */
 	public static void invokeBeanFactoryPostProcessors(
 			ConfigurableListableBeanFactory beanFactory, List<BeanFactoryPostProcessor> beanFactoryPostProcessors) {
@@ -57,16 +57,19 @@ final class PostProcessorRegistrationDelegate {
 		// Invoke BeanDefinitionRegistryPostProcessors first, if any.
 		Set<String> processedBeans = new HashSet<>();
 
+		// 判断 beanFactory 的类型
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
+			// BeanFactoryPostProcessor
 			List<BeanFactoryPostProcessor> regularPostProcessors = new ArrayList<>();
+			// BeanDefinitionRegistryPostProcessor (ConfigurationClassPostProcessor 唯一的实现)
 			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
 
-			// 遍历所有的 bean工厂 后置处理器，并进行处理
-			// ConfigurationClassPostProcessor 是 BeanFactoryPostProcessor(BeanDefinitionRegistryPostProcessor) 的唯一实现
+			// 遍历 beanFactoryPostProcessors
 			for (BeanFactoryPostProcessor postProcessor : beanFactoryPostProcessors) {
 				if (postProcessor instanceof BeanDefinitionRegistryPostProcessor) {
 					BeanDefinitionRegistryPostProcessor registryProcessor = (BeanDefinitionRegistryPostProcessor) postProcessor;
+					// 调用工厂后置处理器处理
 					registryProcessor.postProcessBeanDefinitionRegistry(registry);
 					registryProcessors.add(registryProcessor);
 				} else {

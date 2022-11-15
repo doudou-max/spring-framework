@@ -8,10 +8,10 @@ import org.springframework.model.User;
  * @author: doudou
  * @since: 2021-10-18
  */
-@Configuration	// 1
+@Configuration
 public class DemoConfiguration {
 
-	@Bean   // 2. 标注注解，并且被 AnnotationConfigApplicationContext 扫描到，才注入到 beanFactory 中
+	@Bean
 	public User sayBean() {
 		return new User();
 	}

@@ -21,16 +21,13 @@ import org.springframework.model.User;
 public class MainClass {
 
 	public static void main(String[] args) {
-		// 用我们的配置文件来启动一个 ApplicationContext
-		ApplicationContext context = new ClassPathXmlApplicationContext("classpath:application.xml");
 
-		System.out.println("context 启动成功");
-
-		// 从 context 中取出我们的 Bean，而不是用 new MessageServiceImpl() 这种方式
-		MessageService messageService = context.getBean(MessageService.class);
-
-		// 这句将输出: hello world
-		System.out.println(messageService.getMessage());
+//		// xml 方式
+//		ApplicationContext context = new ClassPathXmlApplicationContext("classpath:application.xml");
+//
+//		// 从 context 中取出 Bean
+//		MessageService messageService = context.getBean(MessageService.class);
+//		System.out.println(messageService.getMessage());
 
 //		ApplicationContext context = new AnnotationConfigApplicationContext(DemoComponent.class, User.class);
 //		DemoComponent demoComponent = context.getBean(DemoComponent.class);
@@ -44,11 +41,9 @@ public class MainClass {
 //		System.out.println("---------------" + messageService.getMessage());
 
 		// 注解 applicationContext，必须结合 @Configuration 和 @Bean 一起使用
-//		ApplicationContext context = new AnnotationConfigApplicationContext("org.springframework.configuration", "org.springframework.component");
-
-//		ApplicationContext context = new AnnotationConfigApplicationContext("org.springframework.controller", "org.springframework.component");
-//		DemoComponent demoComponent = context.getBean(DemoComponent.class);
-//		System.out.println("---------------" + demoComponent.say());
+		ApplicationContext context = new AnnotationConfigApplicationContext("org.springframework.controller", "org.springframework.component");
+		DemoComponent demoComponent = context.getBean(DemoComponent.class);
+		System.out.println("---------------" + demoComponent.say());
 
 //		DemoComponent bean = context.getBean(DemoComponent.class);
 //		System.out.println("---------------" + bean.say());

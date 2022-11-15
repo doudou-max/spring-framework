@@ -747,15 +747,14 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	}
 
 	/**
-	 * 这一步是获取所有 BeanPostProcessor，并处理这些 BeanPostProcessor，
-	 * 然后里面后置处理器的逻辑 refresh() 中的 finishBeanFactoryInitialization
+	 * 获取 BeanFactoryPostProcessor 列表，并调用方法
 	 *
 	 * Instantiate and invoke all registered BeanFactoryPostProcessor beans,
 	 * respecting explicit order if given.
 	 * <p>Must be called before singleton instantiation.
 	 */
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
-		// getBeanFactoryPostProcessors() 获取所有的 bean工厂 后置处理器，并处理获取到的后置处理器
+		// 获取 BeanFactory 后置处理器，并调用处理器
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 
 		// Detect a LoadTimeWeaver and prepare for weaving, if found in the meantime

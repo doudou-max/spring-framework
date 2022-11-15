@@ -244,10 +244,9 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	}
 
 	/**
-	 * Derive further bean definitions from the configuration classes in the registry.
+	 * BeanDefinitionRegistryPostProcessor -> postProcessBeanDefinitionRegistry()
 	 *
-	 * 为了更好的理解它的运行过程，我们需要知道它在什么时候调用：AbstractApplicationContext#refresh 中的
-	 * 第 5 步时进行调用 postProcessBeanDefinitionRegistry()
+	 * Derive further bean definitions from the configuration classes in the registry.
 	 */
 	@Override
 	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
@@ -265,13 +264,12 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		// 已经执行过的 registry，防止重复执行
 		this.registriesPostProcessed.add(registryId);
 
-		// 调用 processConfigBeanDefinitions() 进行Bean定义的加载
+		// 处理配置bean定义
 		processConfigBeanDefinitions(registry);
 	}
 
 	/**
-	 * 为 @Configuration 注解描述的配置类创建一个CGLIB代理对象，然后由代理对象调用 @Bean 注解描述的方法，创建和初始化 Bean
-	 * 但 @Component注解描述类时，系统底层并不会为此类创建代理对象，只是创建当前类的对象，然后调用@Bean注解描述的方法，创建和初始化Bean
+	 * BeanFactoryPostProcessor -> postProcessBeanFactory()
 	 *
 	 * Prepare the Configuration classes for servicing bean requests at runtime
 	 * by replacing them with CGLIB-enhanced subclasses.
@@ -295,53 +293,45 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	}
 
 	/**
-	 * 解释一下：我们配置类是什么时候注册进去的呢 ？？？(此处只讲注解驱动的 Spring 和 SpringBoot)
-	 * 注解驱动的 Spring 为：自己在 `MyWebAppInitializer` 里面自己手动指定进去的
-	 * SpringBoot 为它自己的 main 引导类里去加载进来的，后面详说 SpringBoot 部分
+	 * 处理配置的bean定义
 	 *
 	 * Build and validate a configuration model based on the registry of
 	 * {@link Configuration} classes.
 	 */
 	public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
 		List<BeanDefinitionHolder> configCandidates = new ArrayList<>();
-		// 获取已经注册的 bean 名称 (此处有7个，6 个 Bean + rootConfig)
 		String[] candidateNames = registry.getBeanDefinitionNames();
 
 		for (String beanName : candidateNames) {
 			BeanDefinition beanDef = registry.getBeanDefinition(beanName);
-			// 这个判断很有意思 ~~~ 如果你的 beanDef 现在就已经确定了是 full 或者 lite，说明你肯定已经被解析过了，
-			// 所以再来的话输出个 debug 即可 (其实我觉得输出 warn 也行~~~)
+			// beanDef 确定是 full 或 lite 说明被解析过
 			if (beanDef.getAttribute(ConfigurationClassUtils.CONFIGURATION_CLASS_ATTRIBUTE) != null) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Bean definition has already been processed as a configuration class: " + beanDef);
 				}
 			}
-			// 检查是否是 @Configuration 的 Class，如果是就标记下属性：full 或者 lite。
-			// beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL)
-			// 加入到 configCandidates 里保存配置文件类的定义
-			// 显然此处，仅仅只有 rootConfig 一个类符合条件
+			// 检查是否被 @Configuration 标注，添加到 configCandidates
 			else if (ConfigurationClassUtils.checkConfigurationClassCandidate(beanDef, this.metadataReaderFactory)) {
 				configCandidates.add(new BeanDefinitionHolder(beanDef, beanName));
 			}
 		}
 
+		// 没有配置类直接返回
 		// Return immediately if no @Configuration classes were found
-		// 如果一个配置文件类都没找到，现在就不需要再继续下去了
 		if (configCandidates.isEmpty()) {
 			return;
 		}
 
+		// @Configuration 类按照 @Order 排序
 		// Sort by previously determined @Order value, if applicable
-		// 把配置文件们：按照 @Order 注解进行排序  这个意思是，我们 @Configuration 注解的配置文件是支持 order 排序的。（备注：普通bean不行的~~~）
 		configCandidates.sort((bd1, bd2) -> {
 			int i1 = ConfigurationClassUtils.getOrder(bd1.getBeanDefinition());
 			int i2 = ConfigurationClassUtils.getOrder(bd2.getBeanDefinition());
 			return Integer.compare(i1, i2);
 		});
 
+		// 这里不清晰，待处理 ~
 		// Detect any custom bean name generation strategy supplied through the enclosing application context
-		// 此处 registry 是 DefaultListableBeanFactory 这里会进去
-		// 尝试着给 Bean 扫描方式，以及 import 方法的 BeanNameGenerator 赋值(若我们都没指定，那就是默认的AnnotationBeanNameGenerator：扫描为首字母小写，import为全类名)
 		SingletonBeanRegistry sbr = null;
 		if (registry instanceof SingletonBeanRegistry) {
 			sbr = (SingletonBeanRegistry) registry;
@@ -355,30 +345,28 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			}
 		}
 
-		// web 环境，这里都设置了 StandardServletEnvironment
-		// 一般来说到此处，env 环境不可能为null了~~~ 此处做一个容错处理~~~
+		// web环境兼容处理
 		if (this.environment == null) {
 			this.environment = new StandardEnvironment();
 		}
 
+		// 解析 @Configuration 配置类
 		// Parse each @Configuration class
-		// 这是重点：真正解析@Configuration类的，其实是ConfigurationClassParser 这个解析器来做的
-		// parser 后面用于解析每一个配置类~~~~
 		ConfigurationClassParser parser = new ConfigurationClassParser(
 				this.metadataReaderFactory, this.problemReporter, this.environment,
 				this.resourceLoader, this.componentScanBeanNameGenerator, registry);
 
+		// 候选 Holder
 		Set<BeanDefinitionHolder> candidates = new LinkedHashSet<>(configCandidates);
-		// 装载已经处理过的配置类，最大长度为：configCandidates.size()
+		// 已经解析的配置类
 		Set<ConfigurationClass> alreadyParsed = new HashSet<>(configCandidates.size());
 		do {
 			StartupStep processConfig = this.applicationStartup.start("spring.context.config-classes.parse");
-			// 核心方法：具体详解如下 (解析用户自定义的配置类，其中也包括 ImportSelector)
+			// 解析
 			parser.parse(candidates);
-			// 校验 配置类不能使final的，因为需要使用CGLIB生成代理对象，见postProcessBeanFactory方法
+			// 校验
 			parser.validate();
-
-			// 此处就拿出了我们已经处理好的所有配置类们（该配置文件下的所有组件们~~~~）
+			// 处理好的配置类
 			Set<ConfigurationClass> configClasses = new LinkedHashSet<>(parser.getConfigurationClasses());
 			configClasses.removeAll(alreadyParsed);
 
