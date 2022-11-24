@@ -38,6 +38,9 @@ import org.springframework.lang.Nullable;
 public interface DeferredImportSelector extends ImportSelector {
 
 	/**
+	 * 使用 DeferredImportSelector 要实现该方法 和 写一个实现 Group 接口类，该方法返回一个 Class
+	 * 表示 DeferredImportSelector 属于哪个组的，spring 会生成唯一的 Group，并将返回值为该 Group 的 DeferredImportSelector 放入一个List里
+	 *
 	 * Return a specific import group.
 	 * <p>The default implementations return {@code null} for no grouping required.
 	 * @return the import group class, or {@code null} if none
@@ -56,12 +59,15 @@ public interface DeferredImportSelector extends ImportSelector {
 	interface Group {
 
 		/**
+		 * 上面分组完成后 spring 会调用该方法，循环 List 里的 DeferredImportSelector 类，并循环调用 process()
 		 * Process the {@link AnnotationMetadata} of the importing @{@link Configuration}
 		 * class using the specified {@link DeferredImportSelector}.
 		 */
 		void process(AnnotationMetadata metadata, DeferredImportSelector selector);
 
 		/**
+		 * 每个 Group 只执行一次，返回一个迭代器，spring 会使用迭代器的 forEach 方法进行迭代，
+		 * 想要导入 spring 容器的类要封装成 Entry 对象，且返回的对象不能为 null，会报错(设计问题)
 		 * Return the {@link Entry entries} of which class(es) should be imported
 		 * for this group.
 		 */
@@ -78,6 +84,10 @@ public interface DeferredImportSelector extends ImportSelector {
 
 			private final String importClassName;
 
+			/**
+			 * AnnotationMetadata：必须是一个将 DeferredImportSelector 导入的配置类，要不会报错，而且不能 new
+			 * importClassName：需要导入类的类路径名
+			 */
 			public Entry(AnnotationMetadata metadata, String importClassName) {
 				this.metadata = metadata;
 				this.importClassName = importClassName;

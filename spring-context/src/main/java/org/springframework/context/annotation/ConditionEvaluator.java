@@ -79,10 +79,12 @@ class ConditionEvaluator {
 	 * @return if the item should be skipped
 	 */
 	public boolean shouldSkip(@Nullable AnnotatedTypeMetadata metadata, @Nullable ConfigurationPhase phase) {
-		// 没有被 @Conditional 或其派生注解标注，则不会跳过
+		// 没有被 @Conditional 或其派生注解标注，直接返回 false
 		if (metadata == null || !metadata.isAnnotated(Conditional.class.getName())) {
 			return false;
 		}
+
+		// 如果被 @Conditional注解 或 派生注解 标注，执行下面逻辑
 
 		// 没有指定 phase，注意 phase 可以分为 PARSE_CONFIGURATION 或 REGISTER_BEAN 类型
 		if (phase == null) {
