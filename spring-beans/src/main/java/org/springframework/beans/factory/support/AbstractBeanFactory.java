@@ -263,15 +263,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		String beanName = transformedBeanName(name);
 		Object bean;
 
-		// Eagerly check singleton cache for manually registered singletons. 为手动注册的单例对象检查单例缓存
-		// getSingleton() 方法的实现，在父类 DefaultSingletonBeanRegistry 中，请先移步下面，看详解
-		// 这里先尝试从缓存中获取，若获取不到，就走下面的创建
-		// 一开始这个方法返回的是 null，并没有值
-		// 缓存的字段为全局的 Map:singletonObjects
+		// Eagerly check singleton cache for manually registered singletons.
+		// 从三级缓存中获取 bean 对象，刚开始没有值
 		Object sharedInstance = getSingleton(beanName);
 
-		// 这里虽然只是一句日志，但是能说明用意。
-		// 若条件为 true，表示这个 Bean 虽然在缓存里，但是还并没有完全被初始化（循环引用）
+		// 条件为 true，说明 bean 在缓存中，还并没有完全被初始化，既发生循环引用
 		if (sharedInstance != null && args == null) {
 			if (logger.isTraceEnabled()) {
 
@@ -283,28 +279,23 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					logger.trace("Returning cached instance of singleton bean '" + beanName + "'");
 				}
 			}
-			// 在 getBean() 方法中，getObjectForBeanInstance() 是个频繁使用的方法。因此为了更好的知道细节，下面会详解这个方法的
-			// 其实简单理解就是处理 FactoryBean 的 getObject() 方法
-			// 如果是一个普通的 bean 直接返回，如果是一个 FactoryBean 就进行实例化 (dubbo 2.7.8 consumer 有运用到 init())
+			// 处理 FactoryBean 的 getObject() 方法
 			bean = getObjectForBeanInstance(sharedInstance, name, beanName, null);
 		}
 
 		else {
 			// Fail if we're already creating this bean instance:
 			// We're assumably within a circular reference.
-			// 原型对象不允许循环创建，如果是原型对象正在创建，那就抛异常
-			// 如果 scope 为 prototype 并且显示还在创建中，基本是循环依赖
-			// 对于 prototype 的循环依赖，spring 无解抛异常
+			// 如果 scope 为 prototype，并且是正在创建中，说明发生循环依赖，spring 无法处理抛异常
 			if (isPrototypeCurrentlyInCreation(beanName)) {
 				throw new BeanCurrentlyInCreationException(beanName);
 			}
 
 			// Check if bean definition exists in this factory.
-			// 这一步也是必须要做的，若存在父容器，得看看父容器是否实例化过它了。避免被重复实例化（若父容器被实例化，就以父容器的为准）
-			// 这就是为何，我们扫描 controller，哪怕不加排除什么的，也不会出问题的原因~，因为 Spring 中的单 例Bean 只会被实例化一次（即使父子容器都扫描了）
+			// 获取当前容器的父容器
 			BeanFactory parentBeanFactory = getParentBeanFactory();
 
-			// 从当前容器中找不到指定名称的 bean，递归去 parentFactory 查找
+			// 如果父容器不为空，通过父容器创建 bean (bean 如果是单例，需要保证单例，防止重复创建)
 			if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
 				// Not found -> check parent.
 				// 主要针对 FactoryBean，将 bean 的 & 重新加上
@@ -326,9 +317,8 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				}
 			}
 
-			// alreadyCreated 字段增加此值。表示此 Bean 已经创建了
-			// 备注，此处我们就以 `demoComponent` 这个 Bean 的创建为例了~~~
-			if (!typeCheckOnly) {		// 创建代理对象 $Proxy
+			// 标记 bean 已经被创建
+			if (!typeCheckOnly) {
 				markBeanAsCreated(beanName);
 			}
 
@@ -344,9 +334,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				checkMergedBeanDefinition(mbd, beanName, args);
 
 				// Guarantee initialization of beans that the current bean depends on.
-				// 这里就重要了，因为我们会有属性注入等等  所以这里就是要保证它依赖的那些属性先初始化才行
-				// 这部分是处理循环依赖的核心，这里稍微放一放。下面有大篇幅专门讲解这方面的以及原理解决方案
-				// @DependsOn 注解可以控制Bean的初始化顺序~~~
+				// @DependsOn 注解控制 bean 的初始化顺序
 				String[] dependsOn = mbd.getDependsOn();
 				if (dependsOn != null) {
 					for (String dep : dependsOn) {
@@ -366,22 +354,20 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				}
 
 				// Create bean instance.
-				// === 从这里开始，就正式开始着手创建这个Bean的实例了 ===
-				// 创建单例 bean
+				// 如果是单例 bean 对象
 				if (mbd.isSingleton()) {
-					// 也是一样先尝试从缓存去获取，获取失败就通过 ObjectFactory 的 createBean() 方法创建
-					// 这个 getSingleton() 方法和上面是重载方法，它支持通过 ObjectFactory 去根据 Scope 来创建对象，具体源码解析见下面
-					sharedInstance = getSingleton(beanName, () -> {     // createBean() 方法前的一个重要方法
+					// getSingleton() 先根据 beanName 获取 bean 对象
+					// 如果不存在通过 createBean() 创建 createBean
+					sharedInstance = getSingleton(beanName, () -> {
 						try {
-							// === 这是创建Bean的核心方法，非常重要 ===
-							Object obj = createBean(beanName, mbd, args);
-							return obj;
+							// 创建 bean
+							return createBean(beanName, mbd, args);
 						}
 						catch (BeansException ex) {
 							// Explicitly remove instance from singleton cache: It might have been put there
 							// eagerly by the creation process, to allow for circular reference resolution.
 							// Also remove any beans that received a temporary reference to the bean.
-							// 执行失败，就销毁Bean。然后执行对应的destroy方法，等等销毁Bean时候的生命周期方法们~~~~~~~~~这个就不多说了   主要看看上面的createBean方法吧
+							// 执行失败，就销毁Bean
 							destroySingleton(beanName);
 							throw ex;
 						}

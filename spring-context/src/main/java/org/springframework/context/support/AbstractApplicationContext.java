@@ -941,8 +941,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.freezeConfiguration();
 
 		// Instantiate all remaining (non-lazy-init) singletons.
-		// 这个就是最重要的方法：会把留下来的 Bean 们，不是 lazy 懒加载的 bean 都实例化掉
-		// bean 真正实例化的时刻到了
+		// 实例化非懒加载的 bean 实例
 		beanFactory.preInstantiateSingletons();
 	}
 

@@ -101,7 +101,7 @@ final class PostProcessorRegistrationDelegate {
 			sortPostProcessors(currentRegistryProcessors, beanFactory);
 			// 添加到注册处理器
 			registryProcessors.addAll(currentRegistryProcessors);
-			// 调用后置处理器
+			// 调用bean工厂定义注册后置处理器
 			invokeBeanDefinitionRegistryPostProcessors(currentRegistryProcessors, registry, beanFactory.getApplicationStartup());
 			currentRegistryProcessors.clear();
 

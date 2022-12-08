@@ -914,7 +914,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 						}
 					}
 				}
-				// 自定义的 bean 跑来这里，依赖注入是到这里完成的
+				// 自定义的 bean 跑来这里
 				else {
 					getBean(beanName);
 				}
